@@ -164,9 +164,7 @@ select.fsel{padding:7px 10px;background:#0d0d0d;border:1px solid #1a1a1a;border-
 
 /* PROFILE */
 .profile-wrap{padding-bottom:20px;}
-.profile-banner{height:120px;background:#0a0a0a;position:relative;flex-shrink:0;overflow:hidden;}.profile-banner-img{width:100%;height:100%;object-fit:cover;object-position:var(--bpos,center);display:block;}.profile-banner-tap{position:absolute;inset:0;cursor:pointer;}
-.profile-pfp-wrap{position:absolute;bottom:-26px;left:16px;}
-.profile-pfp{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7rem;border:3px solid #000;cursor:pointer;}
+.profile-banner{height:120px;background:#0a0a0a;position:relative;flex-shrink:0;}.profile-banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--bpos,center);display:block;z-index:0;}.profile-pfp-wrap{position:absolute;bottom:-26px;left:16px;z-index:2;}.profile-pfp{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7rem;border:3px solid #000;cursor:pointer;position:relative;z-index:2;}
 .profile-info{padding:34px 16px 14px;border-bottom:1px solid #111;}
 .profile-uname{font-family:'Bangers',cursive;font-size:1.5rem;letter-spacing:2px;}
 .profile-bio{font-size:.8rem;color:#444;margin-top:4px;line-height:1.4;}
@@ -1201,7 +1199,8 @@ async function renderMyProfile(){
   const vouchTitle = isOwner ? '✅ VOUCHES (∞)' : '✅ VOUCHES (' + (vouches||[]).length + ')';
   const pfpBg=ME.pfp_color||'#fff';
   el.innerHTML=`
-    <div class="profile-banner" style="background:linear-gradient(135deg,${ME.pfp_color||'#fff'}33,#000);">${ME.banner_url?`<img class='profile-banner-img' src='${ME.banner_url}' style='object-position:${ME.banner_pos||'center'};'>`:''}
+    <div class="profile-banner" style="background:linear-gradient(135deg,${ME.pfp_color||'#fff'}33,#000);">
+      ${ME.banner_url?`<img class='profile-banner-img' src='${ME.banner_url}' style='object-position:${ME.banner_pos||'center'};'>`:''}
       <div class="profile-pfp-wrap">
         <div class="profile-pfp" style="${ME.pfp_url?`background-image:url(${ME.pfp_url});background-size:cover;background-position:center;font-size:0`:`background:${ME.pfp_color||'#fff'};color:${isLight(ME.pfp_color||'#fff')?'#000':'#fff'}`};" onclick="openEditProfile()">${ME.pfp_url?'':ME.pfp_emoji||'🧠'}</div>
       </div>
