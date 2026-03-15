@@ -258,14 +258,14 @@ select[multiple] option:checked{background:#333;color:#fff;}
 .lb-count{font-family:'Bangers',cursive;font-size:1.4rem;color:#fff;letter-spacing:1px;text-align:right;}
 .lb-count span{font-size:.6rem;color:#555;display:block;font-family:'Nunito',sans-serif;font-weight:800;}
 /* ADMIN */
-.admin-btn{position:fixed;bottom:72px;right:14px;width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid #000;cursor:pointer;font-size:1.1rem;z-index:200;box-shadow:0 4px 16px rgba(255,255,255,.2);display:none;align-items:center;justify-content:center;}
+.admin-btn{position:fixed;bottom:86px;right:16px;width:48px;height:48px;border-radius:50%;background:#fff;border:2.5px solid #000;cursor:pointer;font-size:1.15rem;z-index:300;box-shadow:0 2px 16px rgba(255,255,255,.25);display:none;align-items:center;justify-content:center;}
 
 /* LOADING & TOAST */
 .loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:28px;color:#1a1a1a;font-size:.82rem;}
 .spin{width:16px;height:16px;border:2px solid #111;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(60px);background:#0d0d0d;border:1px solid #fff;border-radius:50px;padding:9px 18px;font-weight:800;font-size:.8rem;color:#fff;transition:transform .28s ease;z-index:9999;pointer-events:none;white-space:nowrap;}
-.toast.show{transform:translateX(-50%) translateY(0);}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(80px);background:#0d0d0d;border:1px solid #fff;border-radius:50px;padding:9px 18px;font-weight:800;font-size:.8rem;color:#fff;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s ease;z-index:9999;pointer-events:none;white-space:nowrap;opacity:0;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .toast.err{border-color:#ff5555;color:#ff5555;}
 .toast.ok{border-color:#55ff88;color:#55ff88;}
 </style>
@@ -404,11 +404,11 @@ select[multiple] option:checked{background:#333;color:#fff;}
     </div>
 
   </div>
+  <button class="admin-btn" id="admin-fab" onclick="document.getElementById('admin-modal').classList.add('open')">📣</button>
   <div style="text-align:center;font-size:.55rem;color:#1a1a1a;letter-spacing:1px;text-transform:uppercase;padding:3px 0;background:#000;border-top:1px solid #0a0a0a;flex-shrink:0;">
     MADE BY Y2K &nbsp;·&nbsp; IDEA BY EYBRQ
   </div>
   <div class="bottom-nav">
-    <button class="admin-btn" id="admin-fab" onclick="document.getElementById('admin-modal').classList.add('open')">📣</button>
     <button class="bnav-btn active" id="bnav-market" onclick="goPage('market')"><span class="ico">🏪</span>MARKET<div class="nb-badge" id="market-badge"></div></button>
     <button class="bnav-btn" id="bnav-chat" onclick="goPage('chat')"><span class="ico">💬</span>CHAT<div class="nb-badge" id="chat-badge"></div></button>
     <button class="bnav-btn" id="bnav-leaderboard" onclick="goPage('leaderboard')"><span class="ico">🏆</span>TOP</button>
@@ -1791,16 +1791,13 @@ async function checkBanned(username) {
 // ── TOAST ─────────────────────────────────────────────────────────────────────
 function showToast(msg,type=false){
   const t=document.getElementById('toast');
-  // Clear any existing timer and remove show class first
   clearTimeout(t._t);
   t.classList.remove('show');
+  void t.offsetHeight; // force reflow so transition re-triggers
   t.textContent=msg;
   t.className='toast'+(type==='ok'?' ok':type?' err':'');
-  // Small delay so remove+add triggers CSS transition properly
-  requestAnimationFrame(()=>{
-    t.classList.add('show');
-    t._t=setTimeout(()=>t.classList.remove('show'),2800);
-  });
+  t.classList.add('show');
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
 </script>
