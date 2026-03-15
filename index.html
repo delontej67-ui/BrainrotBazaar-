@@ -1177,6 +1177,10 @@ async function renderMyProfile(){
   const{data:vouches}=await sb.from('vouches').select('*').eq('to_user',ME.username).order('created_at',{ascending:false});
   const{count:tc}=await sb.from('trades').select('id',{count:'exact',head:true}).eq('user_name',ME.username);
   const el=document.getElementById('profile-content');
+  const isOwner = ME.username === OWNER_NAME;
+  const vouchCount = isOwner ? '∞' : (vouches||[]).length;
+  const vouchStyle = isOwner ? 'color:#FFD700;font-size:1.6rem;' : '';
+  const vouchTitle = isOwner ? '✅ VOUCHES (∞)' : '✅ VOUCHES (' + (vouches||[]).length + ')';
   const pfpBg=ME.pfp_color||'#fff';
   el.innerHTML=`
     <div class="profile-banner" style="background:linear-gradient(135deg,${ME.pfp_color||'#fff'}33,#000);">
@@ -1189,7 +1193,7 @@ async function renderMyProfile(){
       <div class="profile-bio">${ME.bio?esc(ME.bio):'<span style="color:#222;">No bio yet — tap edit to add one</span>'}</div>
       <div class="pstats">
         <div class="pstat"><div class="n">${tc||0}</div><div class="l">TRADES</div></div>
-        <div class="pstat"><div class="n" style="${ME.username===OWNER_NAME?'color:#FFD700;':''}">\${ME.username===OWNER_NAME?'∞':(vouches||[]).length}</div><div class="l">VOUCHES</div></div>
+        <div class="pstat"><div class="n" style="${vouchStyle}">${vouchCount}</div><div class="l">VOUCHES</div></div>
       </div>
     </div>
     <div class="profile-actions">
@@ -1197,7 +1201,7 @@ async function renderMyProfile(){
       <button class="btn btn-red" style="font-size:.75rem;padding:7px 13px;" onclick="doLogout()">LOGOUT</button>
     </div>
     <div class="vouches-sec">
-      <div class="v-title">✅ VOUCHES (${ME.username===OWNER_NAME?'∞':(vouches||[]).length})</div>
+      <div class="v-title">${vouchTitle}</div>
       ${(vouches||[]).length?vouches.map(v=>`
         <div class="vouch-card">
           <div class="vouch-from">
