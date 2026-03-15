@@ -258,7 +258,7 @@ select[multiple] option:checked{background:#333;color:#fff;}
 .lb-count{font-family:'Bangers',cursive;font-size:1.4rem;color:#fff;letter-spacing:1px;text-align:right;}
 .lb-count span{font-size:.6rem;color:#555;display:block;font-family:'Nunito',sans-serif;font-weight:800;}
 /* ADMIN */
-.admin-btn{position:fixed;bottom:72px;right:14px;width:46px;height:46px;border-radius:50%;background:#b71c1c;border:none;cursor:pointer;font-size:1.2rem;z-index:200;box-shadow:0 4px 16px #b71c1c66;display:none;}
+.admin-btn{position:fixed;bottom:72px;right:14px;width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid #000;cursor:pointer;font-size:1.1rem;z-index:200;box-shadow:0 4px 16px rgba(255,255,255,.2);display:none;align-items:center;justify-content:center;}
 
 /* LOADING & TOAST */
 .loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:28px;color:#1a1a1a;font-size:.82rem;}
@@ -408,7 +408,7 @@ select[multiple] option:checked{background:#333;color:#fff;}
     MADE BY Y2K &nbsp;·&nbsp; IDEA BY EYBRQ
   </div>
   <div class="bottom-nav">
-    <button class="admin-btn" id="admin-fab" onclick="document.getElementById('admin-modal').classList.add('open')">⚡</button>
+    <button class="admin-btn" id="admin-fab" onclick="document.getElementById('admin-modal').classList.add('open')">📣</button>
     <button class="bnav-btn active" id="bnav-market" onclick="goPage('market')"><span class="ico">🏪</span>MARKET<div class="nb-badge" id="market-badge"></div></button>
     <button class="bnav-btn" id="bnav-chat" onclick="goPage('chat')"><span class="ico">💬</span>CHAT<div class="nb-badge" id="chat-badge"></div></button>
     <button class="bnav-btn" id="bnav-leaderboard" onclick="goPage('leaderboard')"><span class="ico">🏆</span>TOP</button>
@@ -535,31 +535,60 @@ select[multiple] option:checked{background:#333;color:#fff;}
 
 <!-- ADMIN PANEL MODAL -->
 <div class="overlay" id="admin-modal">
-  <div class="modal" style="max-height:85vh;">
-    <div class="modal-head" style="background:linear-gradient(135deg,#b71c1c,#000);"><span class="modal-title" style="color:#ff5252;">⚡ ADMIN PANEL</span><button class="modal-close" onclick="cm('admin-modal')">✕</button></div>
-    <div class="modal-body">
-      <div style="background:#1a0000;border:1px solid #b71c1c44;border-radius:10px;padding:10px;margin-bottom:14px;">
-        <div style="font-size:.7rem;color:#ff5252;font-weight:800;letter-spacing:1px;">⚠️ OWNER ONLY — Y2KEXPLOITS</div>
-        <div style="font-size:.62rem;color:#555;margin-top:2px;">All actions are permanent and logged.</div>
+  <div class="modal" style="max-height:88vh;overflow:hidden;display:flex;flex-direction:column;">
+    <div class="modal-head" style="background:#000;border-bottom:2px solid #fff;flex-shrink:0;">
+      <span class="modal-title" style="color:#fff;letter-spacing:3px;">📣 ADMIN PANEL</span>
+      <button class="modal-close" onclick="cm('admin-modal')" style="color:#fff;">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1;">
+
+      <!-- Owner tag -->
+      <div style="border:1px solid #fff;border-radius:10px;padding:10px 12px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.2rem;">👑</span>
+        <div>
+          <div style="font-size:.72rem;font-weight:900;letter-spacing:1px;color:#fff;">Y2KEXPLOITS — OWNER ACCESS</div>
+          <div style="font-size:.6rem;color:#555;margin-top:1px;">All actions are permanent and logged</div>
+        </div>
       </div>
 
-      <span class="sec-lbl">🔨 Ban / IP Ban User</span>
-      <input class="fsel2" id="admin-ban-user" placeholder="Username to ban" style="margin-bottom:6px;">
-      <div style="display:flex;gap:6px;margin-bottom:14px;">
-        <button class="btn" style="flex:1;background:#b71c1c;color:#fff;font-size:.75rem;" onclick="adminBan(false)">🔨 BAN</button>
-        <button class="btn" style="flex:1;background:#4a0000;color:#ff5252;font-size:.75rem;" onclick="adminBan(true)">☠️ IP BAN</button>
+      <!-- BAN section -->
+      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:.7rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:8px;text-transform:uppercase;">🔨 Ban User</div>
+        <input class="fsel2" id="admin-ban-user" placeholder="Enter username..." style="margin-bottom:8px;background:#000;border:1px solid #fff;color:#fff;">
+        <div style="display:flex;gap:8px;">
+          <button onclick="adminBan(false)" style="flex:1;background:#000;border:2px solid #fff;color:#fff;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;letter-spacing:.5px;">🔨 BAN</button>
+          <button onclick="adminBan(true)" style="flex:1;background:#fff;border:2px solid #fff;color:#000;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;letter-spacing:.5px;">☠️ IP BAN</button>
+        </div>
       </div>
 
-      <span class="sec-lbl">🔓 Unban User</span>
-      <input class="fsel2" id="admin-unban-user" placeholder="Username to unban" style="margin-bottom:6px;">
-      <button class="btn btn-g" style="width:100%;font-size:.75rem;margin-bottom:14px;" onclick="adminUnban()">✅ UNBAN</button>
+      <!-- UNBAN section -->
+      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:.7rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:8px;text-transform:uppercase;">🔓 Unban User</div>
+        <input class="fsel2" id="admin-unban-user" placeholder="Enter username..." style="margin-bottom:8px;background:#000;border:1px solid #fff;color:#fff;">
+        <button onclick="adminUnban()" style="width:100%;background:#000;border:2px solid #fff;color:#fff;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">✅ UNBAN</button>
+      </div>
 
-      <span class="sec-lbl">🗑️ Delete Trade</span>
-      <input class="fsel2" id="admin-del-trade" placeholder="Username — deletes ALL their trades" style="margin-bottom:6px;">
-      <button class="btn" style="width:100%;background:#b71c1c22;border:1px solid #b71c1c;color:#ff5252;font-size:.75rem;padding:8px;border-radius:10px;margin-bottom:14px;" onclick="adminDeleteTrades()">🗑️ DELETE ALL TRADES</button>
+      <!-- DELETE TRADES section -->
+      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:.7rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:8px;text-transform:uppercase;">🗑️ Delete All Trades</div>
+        <input class="fsel2" id="admin-del-trade" placeholder="Enter username..." style="margin-bottom:8px;background:#000;border:1px solid #fff;color:#fff;">
+        <button onclick="adminDeleteTrades()" style="width:100%;background:#000;border:2px solid #fff;color:#fff;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">🗑️ DELETE ALL TRADES</button>
+      </div>
 
-      <div style="height:1px;background:#1a1a1a;margin-bottom:12px;"></div>
-      <div id="admin-log" style="font-size:.65rem;color:#333;max-height:120px;overflow-y:auto;font-family:monospace;"></div>
+      <!-- WIPE ACCOUNT section -->
+      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:.7rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:8px;text-transform:uppercase;">💣 Wipe Account</div>
+        <input class="fsel2" id="admin-wipe-user" placeholder="Enter username..." style="margin-bottom:8px;background:#000;border:1px solid #fff;color:#fff;">
+        <button onclick="adminWipeAccount()" style="width:100%;background:#fff;border:2px solid #fff;color:#000;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">💣 WIPE + BAN ACCOUNT</button>
+      </div>
+
+      <!-- LOG -->
+      <div style="border:1px solid #222;border-radius:10px;padding:10px;background:#050505;">
+        <div style="font-size:.62rem;color:#555;font-weight:900;letter-spacing:1px;margin-bottom:6px;text-transform:uppercase;">Action Log</div>
+        <div id="admin-log" style="font-size:.62rem;color:#444;max-height:100px;overflow-y:auto;font-family:monospace;line-height:1.6;"></div>
+        <div id="admin-log-empty" style="font-size:.62rem;color:#222;font-style:italic;">No actions yet this session</div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -1661,16 +1690,16 @@ async function checkVouchBot(fromUser, toUser) {
 function adminLog(msg) {
   const el = document.getElementById('admin-log');
   if(!el) return;
+  const empty = document.getElementById('admin-log-empty');
+  if(empty) empty.style.display = 'none';
   const line = document.createElement('div');
-  line.style.borderBottom = '1px solid #111';
-  line.style.paddingBottom = '3px';
-  line.style.marginBottom = '3px';
+  line.style.cssText = 'border-bottom:1px solid #111;padding-bottom:3px;margin-bottom:3px;color:#aaa;';
   line.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
   el.prepend(line);
 }
 
 async function adminBan(isIpBan) {
-  if(ME?.username !== OWNER_NAME){ showToast('No permission!', true); return; }
+  if(!ME || ME.username !== OWNER_NAME){ showToast('Owner only!', true); adminLog('ACCESS DENIED — not owner'); return; }
   const username = document.getElementById('admin-ban-user').value.trim();
   if(!username){ showToast('Enter a username!', true); return; }
   if(username === OWNER_NAME){ showToast('Cannot ban the owner!', true); return; }
@@ -1695,7 +1724,7 @@ async function adminBan(isIpBan) {
 }
 
 async function adminUnban() {
-  if(ME?.username !== OWNER_NAME){ showToast('No permission!', true); return; }
+  if(!ME || ME.username !== OWNER_NAME){ showToast('Owner only!', true); return; }
   const username = document.getElementById('admin-unban-user').value.trim();
   if(!username){ showToast('Enter a username!', true); return; }
 
@@ -1708,7 +1737,7 @@ async function adminUnban() {
 }
 
 async function adminDeleteTrades() {
-  if(ME?.username !== OWNER_NAME){ showToast('No permission!', true); return; }
+  if(!ME || ME.username !== OWNER_NAME){ showToast('Owner only!', true); return; }
   const username = document.getElementById('admin-del-trade').value.trim();
   if(!username){ showToast('Enter a username!', true); return; }
   if(!confirm('Delete ALL trades for ' + username + '?')) return;
@@ -1719,6 +1748,31 @@ async function adminDeleteTrades() {
   adminLog('🗑️ DELETED all trades for: ' + username);
   document.getElementById('admin-del-trade').value = '';
   showToast('🗑️ Deleted trades for ' + username, 'ok');
+  loadTrades();
+}
+
+async function adminWipeAccount() {
+  if(ME?.username !== OWNER_NAME){ showToast('No permission!', true); return; }
+  const username = document.getElementById('admin-wipe-user').value.trim();
+  if(!username){ showToast('Enter a username!', true); return; }
+  if(username === OWNER_NAME){ showToast('Cannot wipe the owner!', true); return; }
+  if(!confirm('WIPE + BAN ' + username + '? This deletes ALL their data and bans them.')) return;
+
+  // Ban them
+  await sb.from('banned_users').upsert({
+    username, ban_type:'ban', banned_by:ME.username,
+    banned_at:new Date().toISOString(), reason:'Account wiped by owner'
+  },{onConflict:'username'});
+  // Delete all trades
+  await sb.from('trades').delete().eq('user_name', username);
+  // Delete all messages
+  await sb.from('messages').delete().eq('user_name', username);
+  // Delete all vouches given
+  await sb.from('vouches').delete().eq('from_user', username);
+  // Log
+  adminLog('💣 WIPED + BANNED: ' + username);
+  document.getElementById('admin-wipe-user').value = '';
+  showToast('💣 Account wiped: ' + username, 'ok');
   loadTrades();
 }
 
