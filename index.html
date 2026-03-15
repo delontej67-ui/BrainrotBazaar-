@@ -1217,6 +1217,20 @@ async function viewProfile(username){
   document.getElementById('vp-body').innerHTML='<div class="loading"><div class="spin"></div></div>';
   document.getElementById('vp-foot').style.display='none';
   document.getElementById('vp-modal').classList.add('open');
+  // Check if banned first
+  const {data:banData} = await sb.from('banned_users').select('ban_type').eq('username',username).maybeSingle();
+  if(banData){
+    document.getElementById('vp-body').innerHTML=`
+      <div style="text-align:center;padding:24px 16px;">
+        <div style="font-size:2.5rem;margin-bottom:10px;">${banData.ban_type==='ip_ban'?'☠️':'🔨'}</div>
+        <div style="font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:2px;margin-bottom:8px;">${banData.ban_type==='ip_ban'?'IP BANNED':'BANNED'}</div>
+        <div style="font-size:.78rem;color:#444;">This user has been banned from BrainrotBazaar.</div>
+      </div>`;
+    document.getElementById('vp-foot').style.display='flex';
+    document.getElementById('vp-dm-btn').style.display='none';
+    document.getElementById('vp-vouch-btn').style.display='none';
+    return;
+  }
   const{data:profile}=await sb.from('profiles').select('*').eq('username',username).single();
   const{data:vouches}=await sb.from('vouches').select('*').eq('to_user',username).order('created_at',{ascending:false});
   const{count:tc}=await sb.from('trades').select('id',{count:'exact',head:true}).eq('user_name',username);
@@ -1589,14 +1603,20 @@ async function loadLeaderboard(){
   if(!el) return;
   el.innerHTML = '<div class="loading"><div class="spin"></div></div>';
 
-  // Fetch all vouches
-  const {data, error} = await sb.from('vouches').select('to_user');
+  // Fetch all vouches + banned users simultaneously
+  const [{data, error}, {data:bannedData}] = await Promise.all([
+    sb.from('vouches').select('to_user'),
+    sb.from('banned_users').select('username')
+  ]);
   if(error){ el.innerHTML='<div style="color:#333;font-size:.8rem;padding:20px;text-align:center;">Could not load leaderboard</div>'; return; }
 
-  // Count vouches per user — EXCLUDE owner from regular rankings
+  const bannedSet = new Set((bannedData||[]).map(b => b.username));
+
+  // Count vouches per user — EXCLUDE owner + banned users
   const counts = {};
   (data||[]).forEach(v => {
-    if(v.to_user === OWNER_NAME) return; // owner is pinned separately, don't count
+    if(v.to_user === OWNER_NAME) return;
+    if(bannedSet.has(v.to_user)) return; // skip banned
     counts[v.to_user] = (counts[v.to_user]||0) + 1;
   });
 
@@ -1760,54 +1780,61 @@ function adminLog(msg) {
 }
 
 async function adminBan(isIpBan) {
-  if(!ME || ME.username !== OWNER_NAME){ showToast('Owner only!', true); adminLog('ACCESS DENIED — not owner'); return; }
-  const username = document.getElementById('admin-ban-user').value.trim();
+  if(!ME || ME.username !== OWNER_NAME){ showToast('Owner only!', true); return; }
+  const inp = document.getElementById('admin-ban-user');
+  const username = inp ? inp.value.trim() : '';
   if(!username){ showToast('Enter a username!', true); return; }
   if(username === OWNER_NAME){ showToast('Cannot ban the owner!', true); return; }
-
+  adminLog('Banning ' + username + '...');
   const banType = isIpBan ? 'ip_ban' : 'ban';
-  const {error} = await sb.from('banned_users').upsert({
+  // First try delete existing record, then insert fresh
+  await sb.from('banned_users').delete().eq('username', username);
+  const {error} = await sb.from('banned_users').insert({
     username,
     ban_type: banType,
     banned_by: ME.username,
     banned_at: new Date().toISOString(),
     reason: isIpBan ? 'IP banned by owner' : 'Banned by owner'
-  }, {onConflict: 'username'});
-
-  if(error){ adminLog('ERROR banning ' + username + ': ' + error.message); showToast('Error: ' + error.message, true); return; }
-
-  // Also delete all their trades
+  });
+  if(error){
+    adminLog('ERROR: ' + error.message + ' | code: ' + error.code);
+    showToast('Error: ' + error.message, true);
+    return;
+  }
+  // Delete all their trades
   await sb.from('trades').delete().eq('user_name', username);
-
   adminLog((isIpBan?'☠️ IP BANNED':'🔨 BANNED') + ': ' + username);
-  document.getElementById('admin-ban-user').value = '';
+  if(inp) inp.value = '';
   showToast((isIpBan?'☠️ IP Banned':'🔨 Banned') + ' ' + username, 'ok');
+  // Force reload leaderboard if on that page
+  if(currentPage==='leaderboard') loadLeaderboard();
 }
 
 async function adminUnban() {
   if(!ME || ME.username !== OWNER_NAME){ showToast('Owner only!', true); return; }
-  const username = document.getElementById('admin-unban-user').value.trim();
+  const inp = document.getElementById('admin-unban-user');
+  const username = inp ? inp.value.trim() : '';
   if(!username){ showToast('Enter a username!', true); return; }
-
+  adminLog('Unbanning ' + username + '...');
   const {error} = await sb.from('banned_users').delete().eq('username', username);
-  if(error){ adminLog('ERROR unbanning ' + username + ': ' + error.message); return; }
-
+  if(error){ adminLog('ERROR: ' + error.message); showToast('Error: ' + error.message, true); return; }
   adminLog('✅ UNBANNED: ' + username);
-  document.getElementById('admin-unban-user').value = '';
+  if(inp) inp.value = '';
   showToast('✅ Unbanned ' + username, 'ok');
+  if(currentPage==='leaderboard') loadLeaderboard();
 }
 
 async function adminDeleteTrades() {
   if(!ME || ME.username !== OWNER_NAME){ showToast('Owner only!', true); return; }
-  const username = document.getElementById('admin-del-trade').value.trim();
+  const inp = document.getElementById('admin-del-trade');
+  const username = inp ? inp.value.trim() : '';
   if(!username){ showToast('Enter a username!', true); return; }
   if(!confirm('Delete ALL trades for ' + username + '?')) return;
-
+  adminLog('Deleting trades for ' + username + '...');
   const {error} = await sb.from('trades').delete().eq('user_name', username);
-  if(error){ adminLog('ERROR deleting trades for ' + username + ': ' + error.message); return; }
-
-  adminLog('🗑️ DELETED all trades for: ' + username);
-  document.getElementById('admin-del-trade').value = '';
+  if(error){ adminLog('ERROR: ' + error.message); showToast('Error: ' + error.message, true); return; }
+  adminLog('🗑️ DELETED trades: ' + username);
+  if(inp) inp.value = '';
   showToast('🗑️ Deleted trades for ' + username, 'ok');
   loadTrades();
 }
