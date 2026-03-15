@@ -1624,7 +1624,7 @@ async function checkVouchBot(fromUser, toUser) {
       const warns = (vouchWarnings[fromUser]||0) + 1;
       vouchWarnings[fromUser] = warns;
       if(warns >= 1) {
-        showToast('⚠️ Warning ' + warns + ': Don't bot vouchers!', true);
+        showToast('⚠️ Warning ' + warns + ': Dont bot vouchers!', true);
         // Log to admin
         await sb.from('admin_logs').insert({
           action: 'vouch_bot_warning',
@@ -1644,7 +1644,7 @@ async function checkVouchBot(fromUser, toUser) {
   if(cleanFrom === cleanTo && fromUser !== toUser) {
     const warns = (vouchWarnings[fromUser]||0) + 1;
     vouchWarnings[fromUser] = warns;
-    showToast('⚠️ Warning ' + warns + ': Don't bot vouchers!', true);
+    showToast('⚠️ Warning ' + warns + ': Dont bot vouchers!', true);
     await sb.from('admin_logs').insert({
       action: 'vouch_bot_warning',
       target: toUser,
