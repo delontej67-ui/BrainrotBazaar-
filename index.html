@@ -245,6 +245,21 @@ select[multiple]{background:#0d0d0d;border:1px solid #222;border-radius:10px;pad
 select[multiple] option{padding:5px 8px;border-radius:6px;margin-bottom:2px;}
 select[multiple] option:checked{background:#333;color:#fff;}
 
+
+/* LEADERBOARD */
+.lb-card{background:#0d0d0d;border:1px solid #111;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.lb-rank{font-family:'Bangers',cursive;font-size:1.5rem;letter-spacing:1px;width:32px;text-align:center;flex-shrink:0;}
+.lb-rank.gold{color:#FFD700;}
+.lb-rank.silver{color:#B0BEC5;}
+.lb-rank.bronze{color:#FF7043;}
+.lb-info{flex:1;min-width:0;}
+.lb-name{font-weight:800;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-sub{font-size:.65rem;color:#444;margin-top:1px;}
+.lb-count{font-family:'Bangers',cursive;font-size:1.4rem;color:#fff;letter-spacing:1px;text-align:right;}
+.lb-count span{font-size:.6rem;color:#555;display:block;font-family:'Nunito',sans-serif;font-weight:800;}
+/* ADMIN */
+.admin-btn{position:fixed;bottom:72px;right:14px;width:46px;height:46px;border-radius:50%;background:#b71c1c;border:none;cursor:pointer;font-size:1.2rem;z-index:200;box-shadow:0 4px 16px #b71c1c66;display:none;}
+
 /* LOADING & TOAST */
 .loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:28px;color:#1a1a1a;font-size:.82rem;}
 .spin{width:16px;height:16px;border:2px solid #111;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
@@ -361,6 +376,18 @@ select[multiple] option:checked{background:#333;color:#fff;}
       </div>
     </div>
 
+    <!-- LEADERBOARD -->
+    <div class="page" id="page-leaderboard">
+      <div style="padding:14px 14px 6px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Bangers',cursive;font-size:1.5rem;letter-spacing:3px;">🏆 VOUCH KINGS</div>
+          <div style="font-size:.68rem;color:#444;letter-spacing:1px;text-transform:uppercase;">Live leaderboard · updates every 30s</div>
+        </div>
+        <div style="width:8px;height:8px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676;" id="lb-live-dot"></div>
+      </div>
+      <div id="lb-list" style="padding:0 12px 80px;"></div>
+    </div>
+
     <!-- COLLECTION -->
     <div class="page" id="page-collection">
       <div class="col-toolbar">
@@ -381,8 +408,10 @@ select[multiple] option:checked{background:#333;color:#fff;}
     MADE BY Y2K &nbsp;·&nbsp; IDEA BY EYBRQ
   </div>
   <div class="bottom-nav">
+    <button class="admin-btn" id="admin-fab" onclick="document.getElementById('admin-modal').classList.add('open')">⚡</button>
     <button class="bnav-btn active" id="bnav-market" onclick="goPage('market')"><span class="ico">🏪</span>MARKET<div class="nb-badge" id="market-badge"></div></button>
     <button class="bnav-btn" id="bnav-chat" onclick="goPage('chat')"><span class="ico">💬</span>CHAT<div class="nb-badge" id="chat-badge"></div></button>
+    <button class="bnav-btn" id="bnav-leaderboard" onclick="goPage('leaderboard')"><span class="ico">🏆</span>TOP</button>
     <button class="bnav-btn" id="bnav-collection" onclick="goPage('collection')"><span class="ico">🎴</span>CARDS</button>
     <button class="bnav-btn" id="bnav-profile" onclick="goPage('profile')"><span class="ico">👤</span>PROFILE</button>
   </div>
@@ -500,6 +529,37 @@ select[multiple] option:checked{background:#333;color:#fff;}
     <div class="modal-foot">
       <button class="btn btn-g" onclick="cm('vouch-modal')">CANCEL</button>
       <button class="btn btn-w" onclick="submitVouch()">VOUCH ✅</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL MODAL -->
+<div class="overlay" id="admin-modal">
+  <div class="modal" style="max-height:85vh;">
+    <div class="modal-head" style="background:linear-gradient(135deg,#b71c1c,#000);"><span class="modal-title" style="color:#ff5252;">⚡ ADMIN PANEL</span><button class="modal-close" onclick="cm('admin-modal')">✕</button></div>
+    <div class="modal-body">
+      <div style="background:#1a0000;border:1px solid #b71c1c44;border-radius:10px;padding:10px;margin-bottom:14px;">
+        <div style="font-size:.7rem;color:#ff5252;font-weight:800;letter-spacing:1px;">⚠️ OWNER ONLY — Y2KEXPLOITS</div>
+        <div style="font-size:.62rem;color:#555;margin-top:2px;">All actions are permanent and logged.</div>
+      </div>
+
+      <span class="sec-lbl">🔨 Ban / IP Ban User</span>
+      <input class="fsel2" id="admin-ban-user" placeholder="Username to ban" style="margin-bottom:6px;">
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button class="btn" style="flex:1;background:#b71c1c;color:#fff;font-size:.75rem;" onclick="adminBan(false)">🔨 BAN</button>
+        <button class="btn" style="flex:1;background:#4a0000;color:#ff5252;font-size:.75rem;" onclick="adminBan(true)">☠️ IP BAN</button>
+      </div>
+
+      <span class="sec-lbl">🔓 Unban User</span>
+      <input class="fsel2" id="admin-unban-user" placeholder="Username to unban" style="margin-bottom:6px;">
+      <button class="btn btn-g" style="width:100%;font-size:.75rem;margin-bottom:14px;" onclick="adminUnban()">✅ UNBAN</button>
+
+      <span class="sec-lbl">🗑️ Delete Trade</span>
+      <input class="fsel2" id="admin-del-trade" placeholder="Username — deletes ALL their trades" style="margin-bottom:6px;">
+      <button class="btn" style="width:100%;background:#b71c1c22;border:1px solid #b71c1c;color:#ff5252;font-size:.75rem;padding:8px;border-radius:10px;margin-bottom:14px;" onclick="adminDeleteTrades()">🗑️ DELETE ALL TRADES</button>
+
+      <div style="height:1px;background:#1a1a1a;margin-bottom:12px;"></div>
+      <div id="admin-log" style="font-size:.65rem;color:#333;max-height:120px;overflow-y:auto;font-family:monospace;"></div>
     </div>
   </div>
 </div>
@@ -825,11 +885,20 @@ async function doLogin(){
 }
 
 async function doLoginWith(username,password,silent){
+  // Check if banned first
+  const banMsg = await checkBanned(username);
+  if(banMsg){
+    if(!silent){ const err=document.getElementById('login-err'); err.textContent=banMsg; err.style.display='block'; }
+    localStorage.removeItem('bb_session');
+    return false;
+  }
   const{data,error}=await sb.from('profiles').select('*').eq('username',username).eq('password',password).single();
   if(error||!data){return false;}
   ME=data;
   localStorage.setItem('bb_session',JSON.stringify({username,password}));
   enterApp();
+  // Show admin fab if owner
+  if(username===OWNER_NAME){ const fab=document.getElementById('admin-fab'); if(fab) fab.style.display='flex'; }
   return true;
 }
 
@@ -1139,10 +1208,15 @@ function openVouchModal(username){
 
 async function submitVouch(){
   const msg=document.getElementById('vouch-msg').value.trim();
+  // Anti-bot check
+  const allowed = await checkVouchBot(ME.username, vouchTargetUsername);
+  if(!allowed) return;
   const{error}=await sb.from('vouches').insert({from_user:ME.username,to_user:vouchTargetUsername,message:msg});
   if(error){showToast(error.message.includes('unique')?'Already vouched!':'Error: '+error.message,true);return;}
   cm('vouch-modal');
   showToast('✅ Vouch added!','ok');
+  // Refresh leaderboard if on that page
+  if(currentPage==='leaderboard') loadLeaderboard();
 }
 
 // ── EDIT PROFILE ──────────────────────────────────────────────────────────────
@@ -1433,10 +1507,17 @@ function goPage(p){
   if(p==='collection') renderCollection();
   if(p==='profile') renderMyProfile();
   if(p==='market'){
-    // Clear market badge
     marketNotifs=0;
     const mb=document.getElementById('market-badge');
     mb.style.display='none'; mb.textContent='';
+  }
+  if(p==='leaderboard'){
+    loadLeaderboard();
+    // Live polling every 30s
+    if(lbInterval) clearInterval(lbInterval);
+    lbInterval=setInterval(loadLeaderboard,30000);
+  } else {
+    if(lbInterval){ clearInterval(lbInterval); lbInterval=null; }
   }
   if(p==='chat'){
     // Clear ALL chat notifications
@@ -1446,6 +1527,211 @@ function goPage(p){
     document.getElementById('dm-nc').textContent='';
     updateBadges();
   }
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────────────────────────
+let lbInterval = null;
+
+async function loadLeaderboard(){
+  const el = document.getElementById('lb-list');
+  if(!el) return;
+  el.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+
+  // Fetch all vouches
+  const {data, error} = await sb.from('vouches').select('to_user');
+  if(error){ el.innerHTML='<div style="color:#333;font-size:.8rem;padding:20px;text-align:center;">Could not load leaderboard</div>'; return; }
+
+  // Count vouches per user — EXCLUDE owner from regular rankings
+  const counts = {};
+  (data||[]).forEach(v => {
+    if(v.to_user === OWNER_NAME) return; // owner is pinned separately, don't count
+    counts[v.to_user] = (counts[v.to_user]||0) + 1;
+  });
+
+  // Sort real users descending
+  const sorted = Object.entries(counts)
+    .sort((a,b) => b[1]-a[1])
+    .slice(0,50);
+
+  el.innerHTML = '';
+
+  // ── PIN OWNER at very top in a special card (not ranked) ──────────────────
+  const ownerCard = document.createElement('div');
+  ownerCard.style.cssText = 'background:linear-gradient(135deg,#1a1200,#0d0d0d);border:1px solid #FFD70055;border-radius:14px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;cursor:pointer;';
+  ownerCard.onclick = () => viewProfile(OWNER_NAME);
+  ownerCard.innerHTML = `
+    <div style="font-family:'Bangers',cursive;font-size:1.6rem;width:32px;text-align:center;flex-shrink:0;">👑</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:800;font-size:.88rem;">${esc(OWNER_NAME)} <span style="font-size:.85rem;">👑</span></div>
+      <div style="font-size:.62rem;color:#FFD700;margin-top:1px;letter-spacing:.5px;">OWNER · BEYOND RANKING</div>
+    </div>
+    <div style="font-family:'Bangers',cursive;font-size:1.6rem;color:#FFD700;text-align:right;">∞<span style="font-size:.6rem;color:#555;display:block;font-family:'Nunito',sans-serif;font-weight:800;">VOUCHES</span></div>
+  `;
+  el.appendChild(ownerCard);
+
+  // ── Divider ───────────────────────────────────────────────────────────────
+  const divider = document.createElement('div');
+  divider.style.cssText = 'font-size:.6rem;color:#222;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:10px;';
+  divider.textContent = '── COMMUNITY RANKINGS ──';
+  el.appendChild(divider);
+
+  if(!sorted.length){
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:#2a2a2a;font-size:.8rem;padding:20px;text-align:center;';
+    empty.textContent = 'No vouches yet — start trading! 🔥';
+    el.appendChild(empty);
+  } else {
+    const rankColors = ['gold','silver','bronze'];
+    const rankIcons  = ['🥇','🥈','🥉'];
+
+    sorted.forEach(([username, count], i) => {
+      const card = document.createElement('div');
+      card.className = 'lb-card sb-card';
+      card.style.cursor = 'pointer';
+      card.onclick = () => viewProfile(username);
+
+      const rankClass = i < 3 ? rankColors[i] : '';
+      const rankLabel = i < 3 ? rankIcons[i] : `#${i+1}`;
+
+      card.innerHTML = `
+        <div class="lb-rank ${rankClass}">${rankLabel}</div>
+        <div class="lb-info">
+          <div class="lb-name">${esc(username)}${crownTag(username)}</div>
+          <div class="lb-sub">${count} vouch${count===1?'':'es'} received</div>
+        </div>
+        <div class="lb-count">${count}<span>VOUCHES</span></div>
+      `;
+      el.appendChild(card);
+    });
+  }
+
+  // Pulse the live dot
+  const dot = document.getElementById('lb-live-dot');
+  if(dot){ dot.style.opacity='0'; setTimeout(()=>{ dot.style.opacity='1'; },200); }
+}
+
+// ── ANTI-BOT VOUCH SYSTEM ─────────────────────────────────────────────────────
+// Track vouch warnings per session
+const vouchWarnings = {};
+
+async function checkVouchBot(fromUser, toUser) {
+  // Check 1: same IP prefix heuristic — if account was created < 5 mins ago
+  const {data: profile} = await sb.from('profiles').select('created_at').eq('username', fromUser).single();
+  if(profile) {
+    const age = Date.now() - new Date(profile.created_at).getTime();
+    const fiveMins = 5 * 60 * 1000;
+    if(age < fiveMins) {
+      const warns = (vouchWarnings[fromUser]||0) + 1;
+      vouchWarnings[fromUser] = warns;
+      if(warns >= 1) {
+        showToast('⚠️ Warning ' + warns + ': Don't bot vouchers!', true);
+        // Log to admin
+        await sb.from('admin_logs').insert({
+          action: 'vouch_bot_warning',
+          target: toUser,
+          by: fromUser,
+          note: 'New account (<5min) tried to vouch. Warning #' + warns
+        }).catch(()=>{});
+        return false; // block the vouch
+      }
+    }
+  }
+
+  // Check 2: detect multiple accounts from same base username pattern
+  // e.g. "bob1", "bob2", "bob3" all vouching "bob"
+  const cleanFrom = fromUser.replace(/[0-9_]+$/,'').toLowerCase();
+  const cleanTo = toUser.replace(/[0-9_]+$/,'').toLowerCase();
+  if(cleanFrom === cleanTo && fromUser !== toUser) {
+    const warns = (vouchWarnings[fromUser]||0) + 1;
+    vouchWarnings[fromUser] = warns;
+    showToast('⚠️ Warning ' + warns + ': Don't bot vouchers!', true);
+    await sb.from('admin_logs').insert({
+      action: 'vouch_bot_warning',
+      target: toUser,
+      by: fromUser,
+      note: 'Similar username pattern detected. Warning #' + warns
+    }).catch(()=>{});
+    return false;
+  }
+
+  return true; // ok
+}
+
+// ── ADMIN FUNCTIONS ───────────────────────────────────────────────────────────
+function adminLog(msg) {
+  const el = document.getElementById('admin-log');
+  if(!el) return;
+  const line = document.createElement('div');
+  line.style.borderBottom = '1px solid #111';
+  line.style.paddingBottom = '3px';
+  line.style.marginBottom = '3px';
+  line.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+  el.prepend(line);
+}
+
+async function adminBan(isIpBan) {
+  if(ME?.username !== OWNER_NAME){ showToast('No permission!', true); return; }
+  const username = document.getElementById('admin-ban-user').value.trim();
+  if(!username){ showToast('Enter a username!', true); return; }
+  if(username === OWNER_NAME){ showToast('Cannot ban the owner!', true); return; }
+
+  const banType = isIpBan ? 'ip_ban' : 'ban';
+  const {error} = await sb.from('banned_users').upsert({
+    username,
+    ban_type: banType,
+    banned_by: ME.username,
+    banned_at: new Date().toISOString(),
+    reason: isIpBan ? 'IP banned by owner' : 'Banned by owner'
+  }, {onConflict: 'username'});
+
+  if(error){ adminLog('ERROR banning ' + username + ': ' + error.message); showToast('Error: ' + error.message, true); return; }
+
+  // Also delete all their trades
+  await sb.from('trades').delete().eq('user_name', username);
+
+  adminLog((isIpBan?'☠️ IP BANNED':'🔨 BANNED') + ': ' + username);
+  document.getElementById('admin-ban-user').value = '';
+  showToast((isIpBan?'☠️ IP Banned':'🔨 Banned') + ' ' + username, 'ok');
+}
+
+async function adminUnban() {
+  if(ME?.username !== OWNER_NAME){ showToast('No permission!', true); return; }
+  const username = document.getElementById('admin-unban-user').value.trim();
+  if(!username){ showToast('Enter a username!', true); return; }
+
+  const {error} = await sb.from('banned_users').delete().eq('username', username);
+  if(error){ adminLog('ERROR unbanning ' + username + ': ' + error.message); return; }
+
+  adminLog('✅ UNBANNED: ' + username);
+  document.getElementById('admin-unban-user').value = '';
+  showToast('✅ Unbanned ' + username, 'ok');
+}
+
+async function adminDeleteTrades() {
+  if(ME?.username !== OWNER_NAME){ showToast('No permission!', true); return; }
+  const username = document.getElementById('admin-del-trade').value.trim();
+  if(!username){ showToast('Enter a username!', true); return; }
+  if(!confirm('Delete ALL trades for ' + username + '?')) return;
+
+  const {error} = await sb.from('trades').delete().eq('user_name', username);
+  if(error){ adminLog('ERROR deleting trades for ' + username + ': ' + error.message); return; }
+
+  adminLog('🗑️ DELETED all trades for: ' + username);
+  document.getElementById('admin-del-trade').value = '';
+  showToast('🗑️ Deleted trades for ' + username, 'ok');
+  loadTrades();
+}
+
+// Check if user is banned on login
+async function checkBanned(username) {
+  const {data} = await sb.from('banned_users').select('ban_type,reason').eq('username', username).maybeSingle();
+  if(data) {
+    const msg = data.ban_type === 'ip_ban'
+      ? '☠️ You are IP banned from BrainrotBazaar.'
+      : '🔨 Your account has been banned from BrainrotBazaar.';
+    return msg;
+  }
+  return null;
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
