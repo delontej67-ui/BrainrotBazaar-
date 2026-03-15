@@ -164,7 +164,7 @@ select.fsel{padding:7px 10px;background:#0d0d0d;border:1px solid #1a1a1a;border-
 
 /* PROFILE */
 .profile-wrap{padding-bottom:20px;}
-.profile-banner{height:90px;background:#0a0a0a;position:relative;flex-shrink:0;}
+.profile-banner{height:120px;background:#0a0a0a;position:relative;flex-shrink:0;overflow:hidden;}.profile-banner-img{width:100%;height:100%;object-fit:cover;object-position:var(--bpos,center);display:block;}.profile-banner-tap{position:absolute;inset:0;cursor:pointer;}
 .profile-pfp-wrap{position:absolute;bottom:-26px;left:16px;}
 .profile-pfp{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7rem;border:3px solid #000;cursor:pointer;}
 .profile-info{padding:34px 16px 14px;border-bottom:1px solid #111;}
@@ -501,7 +501,7 @@ select[multiple] option:checked{background:#333;color:#fff;}
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
         <div id="pfp-preview" style="width:64px;height:64px;border-radius:50%;background:#111;border:2px solid #222;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;"></div>
         <div style="flex:1;">
-          <div style="font-size:.75rem;color:#444;margin-bottom:8px;line-height:1.5;">Upload a photo from your device. No NSFW, nudity, or inappropriate content — violators get banned.</div>
+          <div style="font-size:.75rem;color:#444;margin-bottom:8px;line-height:1.5;">Upload a photo. No NSFW content — violators get banned.</div>
           <label style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#000;padding:7px 14px;border-radius:50px;font-size:.78rem;font-weight:800;cursor:pointer;">
             📷 Choose Photo
             <input type="file" id="pfp-file" accept="image/*" style="display:none;" onchange="handlePfpUpload(this)">
@@ -509,6 +509,24 @@ select[multiple] option:checked{background:#333;color:#fff;}
         </div>
       </div>
       <div id="pfp-err" style="color:#ff5555;font-size:.74rem;margin-bottom:8px;display:none;"></div>
+      <div id="owner-banner-section" style="display:none;">
+        <div class="sec-sep"></div>
+        <span class="sec-lbl">👑 Profile Banner <span style="color:#FFD700;font-size:.6rem;">OWNER ONLY</span></span>
+        <div style="font-size:.7rem;color:#444;margin-bottom:8px;">Upload a banner image. After choosing, drag it left/right to pick what part shows.</div>
+        <!-- Banner preview with drag-to-position -->
+        <div id="banner-preview-wrap" style="width:100%;height:90px;border-radius:10px;border:1px solid #333;overflow:hidden;position:relative;background:#111;margin-bottom:8px;cursor:grab;touch-action:none;">
+          <img id="banner-preview-img" src="" style="display:none;height:100%;width:auto;min-width:100%;position:absolute;top:0;left:0;pointer-events:none;user-select:none;">
+          <div id="banner-preview-placeholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#333;font-size:.75rem;font-weight:800;letter-spacing:1px;">NO BANNER SET</div>
+          <div id="banner-drag-hint" style="display:none;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-size:.6rem;padding:3px 8px;border-radius:50px;white-space:nowrap;">← drag to position →</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:#000;padding:8px;border-radius:10px;font-size:.78rem;font-weight:800;cursor:pointer;">
+            🖼️ Choose Banner
+            <input type="file" id="banner-file" accept="image/*" style="display:none;" onchange="handleBannerUpload(this)">
+          </label>
+          <button type="button" id="banner-remove-btn" onclick="removeBanner()" style="background:#000;border:1px solid #333;color:#555;padding:8px 12px;border-radius:10px;font-size:.78rem;cursor:pointer;font-family:'Nunito',sans-serif;">Remove</button>
+        </div>
+      </div>
       <div class="sec-sep"></div>
       <span class="sec-lbl">Bio</span>
       <textarea class="fta" id="edit-bio" placeholder="Tell people about yourself..." style="min-height:55px;"></textarea>
@@ -968,7 +986,7 @@ async function doSignup(){
   const{data:existing}=await sb.from('profiles').select('id').eq('username',u).maybeSingle();
   if(existing){document.getElementById('signup-lbl').textContent='CREATE ACCOUNT 🧠';err.textContent='Username already taken!';err.style.display='block';return;}
   // Create profile
-  const{data,error}=await sb.from('profiles').insert({username:u,password:p,bio:'',pfp_emoji:'🧠',pfp_color:'#ffffff',pfp_url:''}).select().single();
+  const{data,error}=await sb.from('profiles').insert({username:u,password:p,bio:'',pfp_emoji:'🧠',pfp_color:'#ffffff',pfp_url:'',banner_url:'',banner_pos:'center'}).select().single();
   document.getElementById('signup-lbl').textContent='CREATE ACCOUNT 🧠';
   if(error){err.textContent='Error: '+error.message;err.style.display='block';return;}
   ME=data;
@@ -1183,7 +1201,7 @@ async function renderMyProfile(){
   const vouchTitle = isOwner ? '✅ VOUCHES (∞)' : '✅ VOUCHES (' + (vouches||[]).length + ')';
   const pfpBg=ME.pfp_color||'#fff';
   el.innerHTML=`
-    <div class="profile-banner" style="background:linear-gradient(135deg,${ME.pfp_color||'#fff'}33,#000);">
+    <div class="profile-banner" style="background:linear-gradient(135deg,${ME.pfp_color||'#fff'}33,#000);">${ME.banner_url?`<img class='profile-banner-img' src='${ME.banner_url}' style='object-position:${ME.banner_pos||'center'};'>`:''}
       <div class="profile-pfp-wrap">
         <div class="profile-pfp" style="${ME.pfp_url?`background-image:url(${ME.pfp_url});background-size:cover;background-position:center;font-size:0`:`background:${ME.pfp_color||'#fff'};color:${isLight(ME.pfp_color||'#fff')?'#000':'#fff'}`};" onclick="openEditProfile()">${ME.pfp_url?'':ME.pfp_emoji||'🧠'}</div>
       </div>
@@ -1241,6 +1259,7 @@ async function viewProfile(username){
   const alreadyVouched=(vouches||[]).some(v=>v.from_user===ME.username);
   const pfpBg=profile?.pfp_color||'#fff';
   document.getElementById('vp-body').innerHTML=`
+    ${profile?.banner_url?`<div style="width:100%;height:80px;border-radius:10px;overflow:hidden;margin-bottom:12px;"><img src="${profile.banner_url}" style="width:100%;height:100%;object-fit:cover;object-position:${profile.banner_pos||'center'};display:block;"></div>`:''}
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
       ${profile?.pfp_url?`<img src="${profile.pfp_url}" style="width:54px;height:54px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:54px;height:54px;border-radius:50%;background:${profile?.pfp_color||'#fff'};color:${isLight(profile?.pfp_color||'#fff')?'#000':'#fff'};display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">${profile?.pfp_emoji||'🧠'}</div>`}
       <div>
@@ -1293,6 +1312,9 @@ async function submitVouch(){
 function openEditProfile(){
   if(!ME)return;
   pendingPfpDataUrl=null;
+  pendingBannerDataUrl=null;
+  bannerPosX=null;
+  removingBanner=false;
   document.getElementById('edit-bio').value=ME.bio||'';
   document.getElementById('pfp-err').style.display='none';
   document.getElementById('pfp-file').value='';
@@ -1304,10 +1326,27 @@ function openEditProfile(){
     prev.style.background=ME.pfp_color||'#fff';
     prev.style.color=isLight(ME.pfp_color||'#fff')?'#000':'#fff';
     prev.textContent=ME.pfp_emoji||'🧠';
-    prev.style.display='flex';
-    prev.style.alignItems='center';
-    prev.style.justifyContent='center';
-    prev.style.fontSize='1.6rem';
+    prev.style.display='flex'; prev.style.alignItems='center';
+    prev.style.justifyContent='center'; prev.style.fontSize='1.6rem';
+  }
+  // Show banner section for owner only
+  const bannerSection=document.getElementById('owner-banner-section');
+  if(ME.username===OWNER_NAME){
+    bannerSection.style.display='block';
+    // Show existing banner in preview
+    const bImg=document.getElementById('banner-preview-img');
+    const bPlaceholder=document.getElementById('banner-preview-placeholder');
+    if(ME.banner_url){
+      bImg.src=ME.banner_url; bImg.style.display='block';
+      bPlaceholder.style.display='none';
+      document.getElementById('banner-drag-hint').style.display='block';
+      initBannerDrag(ME.banner_pos||'center');
+    } else {
+      bImg.style.display='none'; bPlaceholder.style.display='flex';
+      document.getElementById('banner-drag-hint').style.display='none';
+    }
+  } else {
+    bannerSection.style.display='none';
   }
   document.getElementById('edit-modal').classList.add('open');
 }
@@ -1318,6 +1357,11 @@ async function saveProfile(){
   btn.textContent='SAVING...'; btn.disabled=true;
   const updates={bio};
   if(pendingPfpDataUrl) updates.pfp_url=pendingPfpDataUrl;
+  if(ME.username===OWNER_NAME){
+    if(pendingBannerDataUrl) updates.banner_url=pendingBannerDataUrl;
+    if(bannerPosX!==null) updates.banner_pos=bannerPosX;
+    if(removingBanner){updates.banner_url='';updates.banner_pos='center';}
+  }
   const{error}=await sb.from('profiles').update(updates).eq('username',ME.username);
   btn.textContent='SAVE ✓'; btn.disabled=false;
   if(error){showToast('Error: '+error.message,true);return;}
@@ -1879,6 +1923,95 @@ async function checkBanned(username) {
   }
   return null;
 }
+
+// ── BANNER ────────────────────────────────────────────────────────────────────
+let pendingBannerDataUrl = null;
+let bannerPosX = null; // stored as "X% center" background-position
+let removingBanner = false;
+let bannerDragActive = false;
+let bannerDragStartX = 0;
+let bannerImgCurrentLeft = 0;
+const NSFW_WORDS_BANNER = ['nude','naked','nsfw','porn','sex','xxx','adult','explicit','lewd','hentai'];
+
+function handleBannerUpload(input){
+  removingBanner = false;
+  const file = input.files[0]; if(!file) return;
+  if(file.size > 5*1024*1024){ showToast('Banner too big! Max 5MB.',true); input.value=''; return; }
+  const fname = file.name.toLowerCase();
+  if(NSFW_WORDS_BANNER.some(w=>fname.includes(w))){ showToast('No NSFW banners!',true); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingBannerDataUrl = e.target.result;
+    const bImg = document.getElementById('banner-preview-img');
+    const bPlaceholder = document.getElementById('banner-preview-placeholder');
+    bImg.src = pendingBannerDataUrl;
+    bImg.style.display = 'block';
+    bImg.style.left = '0px';
+    bPlaceholder.style.display = 'none';
+    document.getElementById('banner-drag-hint').style.display = 'block';
+    bannerImgCurrentLeft = 0;
+    bannerPosX = '0% center';
+    // Wait for image to load then init drag
+    bImg.onload = () => initBannerDrag('0% center');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeBanner(){
+  removingBanner = true;
+  pendingBannerDataUrl = null;
+  bannerPosX = 'center';
+  const bImg = document.getElementById('banner-preview-img');
+  bImg.style.display = 'none';
+  bImg.src = '';
+  document.getElementById('banner-preview-placeholder').style.display = 'flex';
+  document.getElementById('banner-drag-hint').style.display = 'none';
+  showToast('Banner will be removed on save');
+}
+
+function initBannerDrag(currentPos){
+  const wrap = document.getElementById('banner-preview-wrap');
+  const img = document.getElementById('banner-preview-img');
+  if(!wrap||!img) return;
+
+  // Parse current position to px offset
+  bannerImgCurrentLeft = 0;
+
+  const startDrag = (clientX) => {
+    bannerDragActive = true;
+    bannerDragStartX = clientX - bannerImgCurrentLeft;
+    wrap.style.cursor = 'grabbing';
+  };
+  const moveDrag = (clientX) => {
+    if(!bannerDragActive) return;
+    const wrapW = wrap.offsetWidth;
+    const imgW = img.naturalWidth * (wrap.offsetHeight / img.naturalHeight);
+    const maxLeft = 0;
+    const minLeft = wrapW - imgW;
+    let newLeft = clientX - bannerDragStartX;
+    newLeft = Math.max(minLeft, Math.min(maxLeft, newLeft));
+    bannerImgCurrentLeft = newLeft;
+    img.style.left = newLeft + 'px';
+    // Convert to % for storage
+    const pct = imgW > wrapW ? Math.round(Math.abs(newLeft) / (imgW - wrapW) * 100) : 0;
+    bannerPosX = pct + '% center';
+  };
+  const endDrag = () => { bannerDragActive = false; wrap.style.cursor = 'grab'; };
+
+  // Remove old listeners by cloning
+  const newWrap = wrap.cloneNode(false);
+  while(wrap.firstChild) newWrap.appendChild(wrap.firstChild);
+  wrap.parentNode.replaceChild(newWrap, wrap);
+
+  newWrap.addEventListener('mousedown', e => startDrag(e.clientX));
+  newWrap.addEventListener('mousemove', e => moveDrag(e.clientX));
+  newWrap.addEventListener('mouseup', endDrag);
+  newWrap.addEventListener('mouseleave', endDrag);
+  newWrap.addEventListener('touchstart', e => { e.preventDefault(); startDrag(e.touches[0].clientX); }, {passive:false});
+  newWrap.addEventListener('touchmove', e => { e.preventDefault(); moveDrag(e.touches[0].clientX); }, {passive:false});
+  newWrap.addEventListener('touchend', endDrag);
+}
+
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
 function showToast(msg,type=false){
