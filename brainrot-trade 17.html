@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BrainrotBazaar</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--bg2:#0a0a0a;--panel:#111;--card:#0d0d0d;--text:#fff;--muted:#555;--border:#222;--r:14px;--hh:56px;--bh:60px;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Nunito',sans-serif;background:#000;color:#fff;display:flex;flex-direction:column;}
+@property --angle{syntax:'<angle>';initial-value:0deg;inherits:false;}
+@keyframes spin-border{to{--angle:360deg;}}
+.sb-card{position:relative;border-radius:20px;}
+.sb-card::before{content:'';position:absolute;inset:-1.5px;border-radius:21px;background:conic-gradient(from var(--angle),#000 0%,#fff 25%,#000 50%,#fff 75%,#000 100%);animation:spin-border 2.5s linear infinite;z-index:-1;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;}
+.sb-el{position:relative;}
+.sb-el::before{content:'';position:absolute;inset:-1.5px;border-radius:inherit;background:conic-gradient(from var(--angle),#000 0%,#fff 25%,#000 50%,#fff 75%,#000 100%);animation:spin-border 3s linear infinite;z-index:0;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;}
+.sb-el>*{position:relative;z-index:1;}
+
+/* AUTH */
+#auth-screen{position:fixed;inset:0;z-index:999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
+.auth-logo{font-family:'Bangers',cursive;font-size:2.6rem;letter-spacing:3px;color:#fff;margin-bottom:4px;text-align:center;}
+.auth-logo span{color:#444;}
+.auth-sub{font-size:.75rem;color:#333;margin-bottom:24px;text-align:center;letter-spacing:2px;text-transform:uppercase;}
+.auth-card{background:#0d0d0d;border-radius:20px;padding:22px;width:100%;max-width:380px;position:relative;}
+.auth-card::before{content:'';position:absolute;inset:-1.5px;border-radius:21px;background:conic-gradient(from var(--angle),#000 0%,#fff 25%,#000 50%,#fff 75%,#000 100%);animation:spin-border 2.5s linear infinite;z-index:-1;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;}
+.auth-tabs{display:flex;background:#000;border-radius:50px;padding:3px;margin-bottom:20px;}
+.auth-tab{flex:1;padding:9px;text-align:center;font-size:.8rem;font-weight:800;color:#444;cursor:pointer;border-radius:50px;transition:all .2s;text-transform:uppercase;letter-spacing:1px;}
+.auth-tab.active{background:#fff;color:#000;}
+.fl{display:block;font-size:.68rem;font-weight:800;color:#444;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;}
+.fi{width:100%;background:#000;border:1px solid #222;border-radius:10px;padding:10px 13px;color:#fff;font-family:'Nunito',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s;margin-bottom:10px;}
+.fi:focus{border-color:#666;}
+.fi::placeholder{color:#333;}
+.btn{padding:10px 18px;border-radius:50px;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.82rem;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;justify-content:center;gap:5px;}
+.btn-w{background:#fff;color:#000;}
+.btn-w:active{background:#ccc;transform:scale(.96);}
+.btn-g{background:#111;color:#fff;border:1px solid #333;}
+.btn-g:active{background:#1a1a1a;}
+.btn-full{width:100%;}
+.btn-red{background:#1a0a0a;color:#ff5555;border:1px solid #442222;}
+.err{color:#ff5555;font-size:.75rem;margin-top:6px;display:none;}
+.suc{color:#55ff88;font-size:.75rem;margin-top:6px;display:none;}
+
+/* HEADER */
+.header{height:var(--hh);background:#000;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;z-index:50;}
+.logo{font-family:'Bangers',cursive;font-size:1.4rem;letter-spacing:3px;color:#fff;}
+.logo span{color:#333;}
+.pfp-btn{width:34px;height:34px;border-radius:50%;background:#fff;color:#000;border:none;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0;}
+
+/* BOTTOM NAV */
+.bottom-nav{height:var(--bh);background:#000;border-top:1px solid #1a1a1a;display:flex;flex-shrink:0;z-index:50;}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:transparent;color:#444;font-family:'Nunito',sans-serif;font-size:.58rem;font-weight:800;cursor:pointer;position:relative;text-transform:uppercase;letter-spacing:.5px;}
+.bnav-btn .ico{font-size:1.25rem;line-height:1;}
+.bnav-btn.active{color:#fff;}
+.bnav-btn.active::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:#fff;border-radius:0 0 3px 3px;}
+.nb-badge{position:absolute;top:5px;right:calc(50% - 16px);background:#fff;color:#000;font-size:.52rem;font-weight:900;width:15px;height:15px;border-radius:50%;display:none;align-items:center;justify-content:center;border:2px solid #000;}
+
+/* PAGES */
+.pages{flex:1;overflow:hidden;position:relative;}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;}
+.page.active{display:flex;}
+.page::-webkit-scrollbar{width:2px;}
+.page::-webkit-scrollbar-thumb{background:#1a1a1a;}
+
+/* MARKET */
+.toolbar{padding:9px 12px;display:flex;flex-wrap:wrap;gap:7px;align-items:center;background:#000;border-bottom:1px solid #1a1a1a;flex-shrink:0;position:sticky;top:0;z-index:10;}
+select.fsel{padding:7px 10px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:50px;color:#fff;font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:700;outline:none;}
+.tcount{font-size:.72rem;color:#2a2a2a;margin-left:auto;}
+.sbar{padding:7px 12px;background:#000;border-bottom:1px solid #1a1a1a;flex-shrink:0;}
+.sbar input{width:100%;background:#0d0d0d;border:1px solid #111;border-radius:50px;padding:7px 13px;color:#fff;font-family:'Nunito',sans-serif;font-size:.8rem;outline:none;}
+.sbar input:focus{border-color:#333;}
+.sbar input::placeholder{color:#2a2a2a;}
+
+/* TRADE CARDS */
+.trade-list{padding:10px;display:flex;flex-direction:column;gap:10px;padding-bottom:20px;}
+.tcard{background:#0d0d0d;border-radius:var(--r);overflow:visible;animation:fadeUp .2s ease;position:relative;}
+.tcard::before{content:'';position:absolute;inset:-1.5px;border-radius:calc(var(--r)+1.5px);background:conic-gradient(from var(--angle),#000 0%,#fff 20%,#000 50%,#fff 70%,#000 100%);animation:spin-border 3s linear infinite;z-index:0;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;}
+.tcard>*{position:relative;z-index:1;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tcard-head{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(255,255,255,.03);border-bottom:1px solid #1a1a1a;border-radius:var(--r) var(--r) 0 0;}
+.tuser{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.tav{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;background:#fff;color:#000;}
+.tuname{font-weight:800;font-size:.82rem;}
+.tbadge{padding:2px 8px;border-radius:50px;font-size:.65rem;font-weight:800;border:1px solid #222;background:#0d0d0d;color:#888;white-space:nowrap;}
+.tcard-body{padding:10px 12px;}
+.tlabel{font-size:.62rem;font-weight:800;color:#2a2a2a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;}
+.chip{display:flex;align-items:center;gap:3px;background:#111;border:1px solid #1a1a1a;border-radius:50px;padding:2px 7px 2px 3px;font-size:.68rem;font-weight:700;color:#aaa;}
+.cav{width:18px;height:18px;border-radius:50%;background:#fff;color:#000;display:flex;align-items:center;justify-content:center;font-size:.42rem;font-weight:900;flex-shrink:0;}
+.tdesc{font-size:.75rem;color:#333;line-height:1.4;margin-top:4px;}
+.tcard-foot{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-top:1px solid #1a1a1a;border-radius:0 0 var(--r) var(--r);}
+.ttime{font-size:.67rem;color:#1a1a1a;}
+.tactions{display:flex;gap:5px;}
+.bxs{padding:4px 10px;font-size:.7rem;border-radius:50px;border:1px solid #1a1a1a;background:#0d0d0d;color:#888;font-family:'Nunito',sans-serif;font-weight:800;cursor:pointer;}
+.bxs:active{background:#111;}
+.bxs-del{border-color:#331111;color:#ff5555;}
+.empty-state{text-align:center;padding:50px 20px;color:#1a1a1a;}
+.empty-state .ei{font-size:3rem;margin-bottom:10px;}
+.empty-state .et{font-family:'Bangers',cursive;font-size:1.4rem;letter-spacing:2px;color:#2a2a2a;}
+.empty-state .es{margin-top:6px;font-size:.82rem;}
+
+/* CHAT */
+.chat-tabs{display:flex;border-bottom:1px solid #1a1a1a;flex-shrink:0;background:#000;}
+.chat-tab{flex:1;padding:10px;text-align:center;font-size:.75rem;font-weight:800;color:#2a2a2a;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;text-transform:uppercase;letter-spacing:.5px;}
+.chat-tab.active{color:#fff;border-bottom-color:#fff;}
+.gchat-banner{margin:10px;background:#0d0d0d;border-radius:var(--r);padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;position:relative;}
+.gchat-banner::before{content:'';position:absolute;inset:-1.5px;border-radius:calc(var(--r)+1.5px);background:conic-gradient(from var(--angle),#000 0%,#fff 25%,#000 50%,#fff 75%,#000 100%);animation:spin-border 3s linear infinite;z-index:0;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;}
+.gchat-banner>*{position:relative;z-index:1;}
+.gchat-banner:active{background:#111;}
+.dm-list{padding:8px;display:flex;flex-direction:column;gap:6px;}
+.dm-li{display:flex;align-items:center;gap:9px;background:#0d0d0d;border-radius:var(--r);padding:9px 11px;cursor:pointer;position:relative;}
+.dm-li::before{content:'';position:absolute;inset:-1px;border-radius:calc(var(--r)+1px);background:conic-gradient(from var(--angle),#000 0%,#333 50%,#000 100%);animation:spin-border 3s linear infinite;z-index:0;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;}
+.dm-li>*{position:relative;z-index:1;}
+.dm-li.unread::before{background:conic-gradient(from var(--angle),#000 0%,#fff 25%,#000 50%,#fff 75%,#000 100%);}
+.dli-av{width:36px;height:36px;border-radius:50%;background:#fff;color:#000;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.dli-info{flex:1;min-width:0;}
+.dli-name{font-weight:800;font-size:.82rem;}
+.dli-preview{font-size:.7rem;color:#2a2a2a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.dli-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.dli-time{font-size:.62rem;color:#1a1a1a;}
+.dli-badge{background:#fff;color:#000;font-size:.58rem;font-weight:900;min-width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+
+/* CHAT VIEW */
+.chat-view{display:none;flex-direction:column;position:absolute;inset:0;background:#000;z-index:20;}
+.chat-view.open{display:flex;}
+.chat-head{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#000;border-bottom:1px solid #1a1a1a;flex-shrink:0;}
+.chat-back{background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;line-height:1;padding:2px 5px;}
+.chat-av{width:34px;height:34px;border-radius:50%;background:#fff;color:#000;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;}
+.chat-nm{font-weight:800;font-size:.88rem;text-transform:uppercase;letter-spacing:.5px;}
+.chat-st{font-size:.68rem;color:#2a2a2a;}
+.chat-msgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px;display:flex;flex-direction:column;gap:8px;}
+.chat-msgs::-webkit-scrollbar{display:none;}
+.msg-row{display:flex;gap:6px;max-width:85%;}
+.msg-row.mine{align-self:flex-end;flex-direction:row-reverse;}
+.msg-av{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;}
+.msg-sender{font-size:.62rem;color:#333;font-weight:800;margin-bottom:2px;}
+.msg-bubble{background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:7px 11px;font-size:.83rem;line-height:1.4;word-break:break-word;color:#bbb;}
+.mine .msg-bubble{background:#1a1a1a;border-color:#2a2a2a;color:#fff;}
+.msg-time{font-size:.6rem;color:#1a1a1a;margin-top:2px;text-align:right;}
+.chat-inp-row{display:flex;gap:7px;align-items:flex-end;padding:9px 11px;background:#000;border-top:1px solid #1a1a1a;flex-shrink:0;}
+.chat-inp{flex:1;background:#0d0d0d;border:1px solid #111;border-radius:18px;padding:8px 13px;color:#fff;font-family:'Nunito',sans-serif;font-size:.85rem;resize:none;outline:none;min-height:38px;max-height:88px;line-height:1.4;}
+.chat-inp:focus{border-color:#333;}
+.chat-inp::placeholder{color:#1a1a1a;}
+.send-btn{width:38px;height:38px;border-radius:50%;background:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;}
+.send-btn:active{background:#ccc;transform:scale(.9);}
+
+/* COLLECTION */
+.col-toolbar{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;background:#000;border-bottom:1px solid #1a1a1a;flex-shrink:0;position:sticky;top:0;z-index:10;}
+.col-title{font-family:'Bangers',cursive;font-size:1.1rem;letter-spacing:2px;}
+.col-sub{font-size:.7rem;color:#333;}
+.col-search{margin:8px 12px 2px;background:#0d0d0d;border:1px solid #111;border-radius:50px;padding:7px 13px;color:#fff;font-family:'Nunito',sans-serif;font-size:.82rem;outline:none;width:calc(100% - 24px);}
+.col-search:focus{border-color:#333;}
+.col-search::placeholder{color:#1a1a1a;}
+.col-grid{padding:9px 12px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.citem{background:#0d0d0d;border:1px solid #111;border-radius:9px;padding:7px 4px;text-align:center;cursor:pointer;position:relative;}
+.citem:active{transform:scale(.94);}
+.citem.sel{border-color:#fff;background:#111;}
+.cav2{width:42px;height:42px;border-radius:7px;margin:0 auto 3px;background:#fff;color:#000;display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:900;text-align:center;line-height:1.2;padding:2px;}
+.cn{font-size:.54rem;font-weight:700;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:#666;}
+.chk{position:absolute;top:2px;right:2px;width:13px;height:13px;border-radius:50%;background:#fff;color:#000;font-size:.52rem;display:none;align-items:center;justify-content:center;}
+.citem.sel .chk{display:flex;}
+
+/* PROFILE */
+.profile-wrap{padding-bottom:20px;}
+.profile-banner{height:90px;background:#0a0a0a;position:relative;flex-shrink:0;}
+.profile-pfp-wrap{position:absolute;bottom:-26px;left:16px;}
+.profile-pfp{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7rem;border:3px solid #000;cursor:pointer;}
+.profile-info{padding:34px 16px 14px;border-bottom:1px solid #111;}
+.profile-uname{font-family:'Bangers',cursive;font-size:1.5rem;letter-spacing:2px;}
+.profile-bio{font-size:.8rem;color:#444;margin-top:4px;line-height:1.4;}
+.pstats{display:flex;gap:18px;margin-top:10px;}
+.pstat .n{font-family:'Bangers',cursive;font-size:1.2rem;letter-spacing:1px;}
+.pstat .l{font-size:.6rem;color:#2a2a2a;text-transform:uppercase;letter-spacing:.5px;}
+.profile-actions{padding:10px 16px;display:flex;gap:8px;border-bottom:1px solid #111;flex-wrap:wrap;}
+.vouches-sec{padding:12px 16px;}
+.v-title{font-family:'Bangers',cursive;font-size:1rem;letter-spacing:1px;margin-bottom:8px;}
+.vouch-card{background:#0d0d0d;border:1px solid #111;border-radius:10px;padding:9px 11px;margin-bottom:7px;}
+.vouch-from{display:flex;align-items:center;gap:7px;margin-bottom:4px;}
+.v-av{width:22px;height:22px;border-radius:50%;background:#fff;color:#000;font-size:.5rem;font-weight:900;display:flex;align-items:center;justify-content:center;}
+.v-name{font-size:.76rem;font-weight:800;}
+.v-msg{font-size:.73rem;color:#444;line-height:1.4;}
+.v-time{font-size:.6rem;color:#1a1a1a;margin-top:2px;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);z-index:100;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:#0d0d0d;border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;animation:slideUp .25s ease;border-top:1px solid #1a1a1a;border-left:1px solid #1a1a1a;border-right:1px solid #1a1a1a;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal::-webkit-scrollbar{display:none;}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #111;position:sticky;top:0;background:#0d0d0d;z-index:5;}
+.modal-title{font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:2px;}
+.modal-close{background:none;border:none;color:#333;font-size:1.2rem;cursor:pointer;padding:4px;}
+.modal-body{padding:14px 16px;}
+.fsel2,.fta{width:100%;background:#000;border:1px solid #111;border-radius:10px;padding:9px 12px;color:#fff;font-family:'Nunito',sans-serif;font-size:.85rem;outline:none;}
+.fsel2:focus,.fta:focus{border-color:#333;}
+.fta{resize:vertical;min-height:65px;}
+.picker-search{width:100%;background:#000;border:1px solid #111;border-radius:50px;padding:7px 13px;color:#fff;font-family:'Nunito',sans-serif;font-size:.8rem;outline:none;margin-bottom:7px;}
+.picker-search:focus{border-color:#333;}
+.picker-search::placeholder{color:#1a1a1a;}
+.cpicker{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:190px;overflow-y:auto;background:#000;border:1px solid #111;border-radius:10px;padding:8px;}
+.cpicker::-webkit-scrollbar{display:none;}
+.cpi{background:#0d0d0d;border:1px solid #111;border-radius:7px;padding:5px 3px;text-align:center;cursor:pointer;font-size:.55rem;font-weight:700;line-height:1.2;color:#555;}
+.cpi:active{transform:scale(.94);}
+.cpi.sel{border-color:#fff;background:#111;color:#fff;}
+.cpav{width:30px;height:30px;border-radius:5px;margin:0 auto 2px;background:#fff;color:#000;display:flex;align-items:center;justify-content:center;font-size:.45rem;font-weight:900;padding:2px;}
+.sel-count{font-size:.7rem;color:#2a2a2a;font-weight:800;margin-bottom:5px;}
+.modal-foot{padding:10px 16px 20px;border-top:1px solid #111;display:flex;gap:8px;position:sticky;bottom:0;background:#0d0d0d;}
+.modal-foot .btn{flex:1;padding:11px;}
+.sec-sep{height:1px;background:#111;margin:12px 0;} .sec-sep{height:1px;background:#111;margin:12px 0;}
+.sec-lbl{display:block;font-size:.68rem;font-weight:800;color:#2a2a2a;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;max-height:150px;overflow-y:auto;background:#000;border:1px solid #111;border-radius:10px;padding:7px;}
+.emoji-grid::-webkit-scrollbar{display:none;}
+.emoji-opt{aspect-ratio:1;border-radius:7px;background:#0d0d0d;border:1px solid #111;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.emoji-opt:active{transform:scale(.9);}
+.emoji-opt.sel{border-color:#fff;}
+.color-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.color-opt.sel{border-color:#fff;}
+
+
+/* MUTATIONS & TRAITS */
+.mut-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.trait-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:50px;font-size:.65rem;font-weight:800;border:1px solid;}
+.trait-mult{font-size:.6rem;background:rgba(0,0,0,.4);padding:1px 4px;border-radius:50px;margin-left:2px;color:#fff;}
+/* income row */
+.income-row{display:flex;gap:6px;align-items:center;}
+.income-row input{flex:1;min-width:0;}
+.income-row select{width:90px;flex-shrink:0;}
+.income-row .unit-label{color:#666;font-size:.82rem;font-weight:800;flex-shrink:0;}
+/* dropdown sections */
+.dd-section{margin-bottom:10px;}
+.dd-section select{width:100%;}
+/* want traits multi-select note */
+.want-traits-wrap select{min-height:120px;}
+/* CHARACTER IMAGE */
+.char-img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:#111;display:block;}
+.char-img-sm{width:22px;height:22px;border-radius:50%;object-fit:cover;background:#111;display:block;}
+
+
+/* Dropdown selects */
+select.fsel2 option{background:#0d0d0d;color:#fff;padding:4px;}
+select[multiple]{background:#0d0d0d;border:1px solid #222;border-radius:10px;padding:6px;color:#fff;font-family:'Nunito',sans-serif;font-size:.82rem;}
+select[multiple] option{padding:5px 8px;border-radius:6px;margin-bottom:2px;}
+select[multiple] option:checked{background:#333;color:#fff;}
+
+/* LOADING & TOAST */
+.loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:28px;color:#1a1a1a;font-size:.82rem;}
+.spin{width:16px;height:16px;border:2px solid #111;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(60px);background:#0d0d0d;border:1px solid #fff;border-radius:50px;padding:9px 18px;font-weight:800;font-size:.8rem;color:#fff;transition:transform .28s ease;z-index:9999;pointer-events:none;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.err{border-color:#ff5555;color:#ff5555;}
+.toast.ok{border-color:#55ff88;color:#55ff88;}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-logo" style="display:flex;flex-direction:column;align-items:center;"><img src="https://gcdnb.pbrd.co/images/4FHuXGwtaVEP.png?o=1" style="height:60px;width:auto;object-fit:contain;margin-bottom:8px;"><div>BRAINROT<span>BAZAAR</span></div></div>
+  <div class="auth-sub">Trade · Chat · Vouch</div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="atab-login" onclick="switchAuthTab('login')">LOGIN</div>
+      <div class="auth-tab" id="atab-signup" onclick="switchAuthTab('signup')">SIGN UP</div>
+    </div>
+    <div id="auth-login">
+      <label class="fl">Username</label>
+      <input class="fi" id="login-user" placeholder="Your username" autocomplete="off">
+      <label class="fl">Password</label>
+      <input class="fi" id="login-pass" type="password" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="err" id="login-err"></div>
+      <div style="margin-top:12px;">
+        <button class="btn btn-w btn-full" onclick="doLogin()"><span id="login-lbl">LOGIN 🚀</span></button>
+      </div>
+    </div>
+    <div id="auth-signup" style="display:none;">
+      <label class="fl">Username</label>
+      <input class="fi" id="signup-user" placeholder="Pick a username" maxlength="20" autocomplete="off">
+      <label class="fl">Password</label>
+      <input class="fi" id="signup-pass" type="password" placeholder="Min 4 characters"
+        onkeydown="if(event.key==='Enter')doSignup()">
+      <div class="err" id="signup-err"></div>
+      <div class="suc" id="signup-suc"></div>
+      <div style="margin-top:12px;">
+        <button class="btn btn-w btn-full" onclick="doSignup()"><span id="signup-lbl">CREATE ACCOUNT 🧠</span></button>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:18px;text-align:center;font-size:.65rem;color:#222;letter-spacing:1px;text-transform:uppercase;line-height:1.8;">
+    Made with 🖤 by <span style="color:#555;">Y2K</span> &nbsp;·&nbsp; Idea by <span style="color:#555;">eybrq</span>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column;height:100%;">
+  <div class="header">
+    <div class="logo" style="display:flex;align-items:center;gap:8px;"><img src="https://gcdnb.pbrd.co/images/4FHuXGwtaVEP.png?o=1" style="height:36px;width:auto;object-fit:contain;vertical-align:middle;">BRAINROT<span>BAZAAR</span></div>
+    <button class="pfp-btn" id="hdr-pfp" onclick="goPage('profile')"></button>
+  </div>
+  <div class="pages">
+
+    <!-- MARKET -->
+    <div class="page active" id="page-market">
+      <div class="toolbar">
+        <button class="btn btn-w" style="font-size:.75rem;padding:7px 12px;" onclick="openPostModal()">➕ POST</button>
+        <select class="fsel" onchange="filterTrades(this.value)">
+          <option value="all">ALL</option>
+          <option value="offer">OFFERING</option>
+          <option value="want">WANTING</option>
+          <option value="swap">SWAP</option>
+        </select>
+        <select class="fsel" onchange="sortTrades(this.value)">
+          <option value="new">NEWEST</option>
+          <option value="old">OLDEST</option>
+        </select>
+        <span class="tcount" id="tcount"></span>
+      </div>
+      <div class="sbar"><input placeholder="🔍  Search by character..." oninput="searchTrades(this.value)"></div>
+      <div class="trade-list" id="trade-list"><div class="loading"><div class="spin"></div> Loading...</div></div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="page" id="page-chat">
+      <div class="chat-tabs">
+        <div class="chat-tab active" id="tab-global" onclick="switchChatTab('global')">🌍 GLOBAL</div>
+        <div class="chat-tab" id="tab-dms" onclick="switchChatTab('dms')">💬 DMS <span id="dm-nc"></span></div>
+      </div>
+      <div id="chat-global-tab">
+        <div class="gchat-banner" onclick="openChat('global','Global Chat','🌍')">
+          <div style="font-size:1.6rem;position:relative;z-index:1;">🌍</div>
+          <div style="position:relative;z-index:1;">
+            <div style="font-weight:800;font-size:.88rem;">GLOBAL CHAT</div>
+            <div style="font-size:.72rem;color:#2a2a2a;margin-top:1px;">Everyone can see this</div>
+          </div>
+          <div style="color:#333;font-size:1.1rem;margin-left:auto;position:relative;z-index:1;">›</div>
+        </div>
+      </div>
+      <div id="chat-dms-tab" style="display:none;">
+        <div style="padding:9px 12px;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.7rem;color:#1a1a1a;text-transform:uppercase;letter-spacing:1px;">Private Chats</span>
+          <button class="btn btn-w" style="font-size:.7rem;padding:5px 10px;" onclick="openNewDM()">+ NEW DM</button>
+        </div>
+        <div class="dm-list" id="dm-list"><div style="text-align:center;padding:28px;color:#1a1a1a;font-size:.8rem;">No DMs yet</div></div>
+      </div>
+      <div class="chat-view" id="chat-view">
+        <div class="chat-head">
+          <button class="chat-back" onclick="closeChat()">‹</button>
+          <div class="chat-av" id="chat-av"></div>
+          <div style="flex:1;min-width:0;"><div class="chat-nm" id="chat-nm"></div><div class="chat-st" id="chat-st"></div></div>
+        </div>
+        <div class="chat-msgs" id="chat-msgs"><div class="loading"><div class="spin"></div></div></div>
+        <div class="chat-inp-row">
+          <textarea class="chat-inp" id="chat-inp" placeholder="Say something..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+          <button class="send-btn" onclick="sendMsg()">🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLLECTION -->
+    <div class="page" id="page-collection">
+      <div class="col-toolbar">
+        <div><div class="col-title">🎴 CHARACTERS</div><div class="col-sub" id="col-sub">0 selected</div></div>
+        <button class="btn btn-w" style="font-size:.7rem;padding:6px 10px;" onclick="openPostModalWithSelected()">TRADE SELECTED</button>
+      </div>
+      <input class="col-search" placeholder="🔍  Search..." oninput="filterCollection(this.value)">
+      <div class="col-grid" id="col-grid"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page" id="page-profile">
+      <div id="profile-content" class="profile-wrap"></div>
+    </div>
+
+  </div>
+  <div style="text-align:center;font-size:.55rem;color:#1a1a1a;letter-spacing:1px;text-transform:uppercase;padding:3px 0;background:#000;border-top:1px solid #0a0a0a;flex-shrink:0;">
+    MADE BY Y2K &nbsp;·&nbsp; IDEA BY EYBRQ
+  </div>
+  <div class="bottom-nav">
+    <button class="bnav-btn active" id="bnav-market" onclick="goPage('market')"><span class="ico">🏪</span>MARKET<div class="nb-badge" id="market-badge"></div></button>
+    <button class="bnav-btn" id="bnav-chat" onclick="goPage('chat')"><span class="ico">💬</span>CHAT<div class="nb-badge" id="chat-badge"></div></button>
+    <button class="bnav-btn" id="bnav-collection" onclick="goPage('collection')"><span class="ico">🎴</span>CARDS</button>
+    <button class="bnav-btn" id="bnav-profile" onclick="goPage('profile')"><span class="ico">👤</span>PROFILE</button>
+  </div>
+</div>
+
+<!-- POST TRADE MODAL -->
+<div class="overlay" id="post-modal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">POST A TRADE</span><button class="modal-close" onclick="cm('post-modal')">✕</button></div>
+    <div class="modal-body">
+      <span class="sec-lbl">Trade Type</span>
+      <select class="fsel2" id="post-type" style="margin-bottom:12px;">
+        <option value="offer">🟢 I'm Offering</option>
+        <option value="want">🟡 I Want</option>
+        <option value="swap">🔄 Swap</option>
+      </select>
+      <div class="sec-sep"></div>
+      <span class="sec-lbl">Characters I Have / Offering</span>
+      <input class="picker-search" id="offer-search" placeholder="🔍  Search..." oninput="filterPicker('offer',this.value)">
+      <div class="sel-count" id="offer-count">0 selected</div>
+      <div class="cpicker" id="offer-picker"></div>
+      <div class="sec-sep"></div>
+
+      <!-- MY OFFERING MUTATION (single select dropdown) -->
+      <span class="sec-lbl">Mutation on my Brainrot</span>
+      <select class="fsel2" id="offer-mutation-dd" style="margin-bottom:10px;"></select>
+
+      <!-- MY OFFERING TRAITS (multi select dropdown) -->
+      <span class="sec-lbl">Traits on my Brainrot <span style="color:#444;font-size:.62rem;">(hold Ctrl/Cmd to pick multiple)</span></span>
+      <select class="fsel2" id="offer-traits-dd" multiple style="min-height:120px;margin-bottom:4px;"></select>
+
+      <div class="sec-sep"></div>
+
+      <!-- MY INCOME -->
+      <span class="sec-lbl">My Income Per Second</span>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">
+        <input class="fsel2" id="post-income-num" type="number" min="0" step="any" placeholder="e.g. 25" style="flex:1;min-width:0;">
+        <select class="fsel2" id="post-income-unit" style="width:105px;flex-shrink:0;">
+          <option value="$">$ (e.g. $100)</option>
+          <option value="K">K (Thousand)</option>
+          <option value="M" selected>M (Million)</option>
+          <option value="B">B (Billion)</option>
+        </select>
+        <span style="color:#555;font-size:.88rem;font-weight:800;flex-shrink:0;">/s</span>
+      </div>
+      <div style="font-size:.62rem;color:#2a2a2a;">Total income with all mutations + traits applied</div>
+
+      <div class="sec-sep"></div>
+
+      <!-- CHARACTERS I WANT BACK -->
+      <span class="sec-lbl">Characters I Want Back</span>
+      <input class="picker-search" id="want-search" placeholder="🔍  Search characters..." oninput="filterPicker('want',this.value)">
+      <div class="sel-count" id="want-count">0 selected</div>
+      <div class="cpicker" id="want-picker"></div>
+
+      <div class="sec-sep"></div>
+
+      <!-- MUTATION I WANT (single select dropdown) -->
+      <span class="sec-lbl">Mutation I Want <span style="color:#444;font-size:.62rem;">(optional)</span></span>
+      <select class="fsel2" id="want-mutation-dd" style="margin-bottom:10px;"></select>
+
+      <!-- TRAITS I WANT (multi select dropdown) -->
+      <span class="sec-lbl">Traits I Want <span style="color:#444;font-size:.62rem;">(optional — hold Ctrl/Cmd for multiple)</span></span>
+      <select class="fsel2" id="want-traits-dd" multiple style="min-height:120px;margin-bottom:4px;"></select>
+
+      <div class="sec-sep"></div>
+
+      <span class="sec-lbl">Notes</span>
+      <textarea class="fta" id="post-desc" placeholder="e.g. Tralalero w/ Strawberry + Nyan trait, lf Sigma Girl w/ Rainbow 🔥"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-g" onclick="cm('post-modal')">CANCEL</button>
+      <button class="btn btn-w" id="submit-btn" onclick="submitTrade()">POST 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">EDIT PROFILE</span><button class="modal-close" onclick="cm('edit-modal')">✕</button></div>
+    <div class="modal-body">
+      <!-- PFP PREVIEW -->
+      <span class="sec-lbl">Profile Picture</span>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+        <div id="pfp-preview" style="width:64px;height:64px;border-radius:50%;background:#111;border:2px solid #222;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;"></div>
+        <div style="flex:1;">
+          <div style="font-size:.75rem;color:#444;margin-bottom:8px;line-height:1.5;">Upload a photo from your device. No NSFW, nudity, or inappropriate content — violators get banned.</div>
+          <label style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#000;padding:7px 14px;border-radius:50px;font-size:.78rem;font-weight:800;cursor:pointer;">
+            📷 Choose Photo
+            <input type="file" id="pfp-file" accept="image/*" style="display:none;" onchange="handlePfpUpload(this)">
+          </label>
+        </div>
+      </div>
+      <div id="pfp-err" style="color:#ff5555;font-size:.74rem;margin-bottom:8px;display:none;"></div>
+      <div class="sec-sep"></div>
+      <span class="sec-lbl">Bio</span>
+      <textarea class="fta" id="edit-bio" placeholder="Tell people about yourself..." style="min-height:55px;"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-g" onclick="cm('edit-modal')">CANCEL</button>
+      <button class="btn btn-w" id="save-profile-btn" onclick="saveProfile()">SAVE ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- VOUCH MODAL -->
+<div class="overlay" id="vouch-modal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">VOUCH ✅</span><button class="modal-close" onclick="cm('vouch-modal')">✕</button></div>
+    <div class="modal-body">
+      <span class="sec-lbl">Vouching for <span id="vouch-for" style="color:#fff;"></span></span>
+      <textarea class="fta" id="vouch-msg" placeholder="e.g. Great trader, fast and legit! 🔥" style="min-height:65px;"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-g" onclick="cm('vouch-modal')">CANCEL</button>
+      <button class="btn btn-w" onclick="submitVouch()">VOUCH ✅</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW PROFILE MODAL -->
+<div class="overlay" id="vp-modal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title" id="vp-title">PROFILE</span><button class="modal-close" onclick="cm('vp-modal')">✕</button></div>
+    <div class="modal-body" id="vp-body"><div class="loading"><div class="spin"></div></div></div>
+    <div class="modal-foot" id="vp-foot" style="display:none;">
+      <button class="btn btn-g" onclick="cm('vp-modal')">CLOSE</button>
+      <button class="btn btn-w" id="vp-dm-btn">💬 DM</button>
+      <button class="btn btn-w" id="vp-vouch-btn">✅ VOUCH</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW DM MODAL -->
+<div class="overlay" id="new-dm-modal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">NEW DM 💬</span><button class="modal-close" onclick="cm('new-dm-modal')">✕</button></div>
+    <div class="modal-body">
+      <span class="sec-lbl">Username (exact, case sensitive)</span>
+      <input class="fi" id="dm-target" placeholder="e.g. TralaleroBoss" maxlength="24" autocomplete="off"
+        onkeydown="if(event.key==='Enter')startNewDM()" style="margin-bottom:0;">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-g" onclick="cm('new-dm-modal')">CANCEL</button>
+      <button class="btn btn-w" onclick="startNewDM()">OPEN 🚀</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://flzrzzzfsqslwgmldnsg.supabase.co';
+const SUPABASE_KEY='sb_publishable_uo1O3EfFBLHXrmV3HlHc0w_6zNOlDjj';
+
+const BR=[
+  // ── COMMON ──────────────────────────────────────────
+  "Noobini Pizzanini","Lirili Larila","Tim Cheesee","Frurifrura","Talpa Di Fero",
+  "Svivina Borbardino","Noobini Santanini","Raccooni Jandelini","Pipi Kiwi",
+  "Tartaragno","Pipi Corni",
+  // ── RARE ────────────────────────────────────────────
+  "Trippi Troppi","Gangster Footera","Bandito Bobritto","Boneca Ambalabu",
+  "Cacto Hipopotamo","Ta Ta Ta Ta Sahur","Cupkake Koala","Tric Tric Baraboom",
+  "Frogo Elfo","Pipi Avocado","Pinealotto Fruttarino",
+  // ── EPIC ────────────────────────────────────────────
+  "Cappuccino Assassino","Bandito Axolito","Brr Brr Patapim","Avocadini Antilopini",
+  "Trullimero Trulicina","Bambini Crostini","Malame Amarele","Bananita Dolphinita",
+  "Perochello Lemonchello","Brri Brri Bicus Dicus Bombicus","Avocadini Guffo",
+  "Ti Ti Ti Ti Sahur","Mangolini Parrocini","Frogato Pirato","Salamino Penguino",
+  "Doi Doi Do","Penguin Tree","Wombo Rollo","Penguino Cocosino","Mummio Pappito",
+  // ── LEGENDARY ────────────────────────────────────────
+  "Burbaloni Loliloli","Chimpanzini Babanini","Kirilikalika Kirilikalato",
+  "Ballerina Appuccina","Chef Crabracadaba","Lionel Cactuseli","Glorbo Fruttodillo",
+  "Quivioli Ameleonni","Blueberrenni Octopusini","Clickerino Clabo",
+  "Caramello Filtrello","Pipi Potato","Strawberrlli Flamingelli","Cocosino Mamá",
+  "Pandaccini Bananini","Quackula","Pipi Watermelon","Signore Carapece",
+  "Sigma Boy","Chocco Bunny","Puffaball","Sigma Girl","Sealo Regalo","Buho De Fuego",
+  // ── MYTHIC ───────────────────────────────────────────
+  "Frigo Camelo","Orangutini Ananassini","Rhino Toasterino","Borbadiro Cocrodilo",
+  "Brutto Gialutto","Spioniro Golubiro","Bombombini Gusini","Zibra Zubra Zibralini",
+  "Tigrillini Watermelini","Avocadorila","Cavallo Virtuoso","Gorillo Subwoofero",
+  "Gorillo Watermelondrillo","Stoppo Luminino","Tob Tobi Tobi","Lerulerulerule",
+  "Ganganzelli Trulala","Te Te Te Te Sahur","Rhino Helicóptero","Magi Ribbiniti",
+  "Tracoducotulu Delapeladustuz","Jingle Jingle Sahur","Los Noobinis",
+  "Spongini Quackini","Cachorito Melonito","Carloo","Elefanto Frigo",
+  "Carrotini Brainini","Centrucci Neclucci","Toiletto Focaccino","Jacko Spaventosa",
+  "Bananito Bandito","Tree Tree Tree Sahur","Fizzy Soda",
+  // ── BRAINROT GOD ─────────────────────────────────────
+  "Cocofanto Elefanto","Antonio","Girafa Cesletre","Gattatino Nyanino",
+  "Chihuanini Taconini","Tralalero Tralala","Metteo","Los Crocodilitos",
+  "Tigroline Frutonni","Money Money Man","Expreso Signora","Unclito Samito",
+  "Odin Din Din Dun","Tipi Topi Taco","Alessio","Orcalero Orcala","Tralalita Tralala",
+  "Tukanno Bananno","Extinct Ballerina","Vampira Cappuccina","Trenozztruzzo Turbo 3000",
+  "Urubini Flamenguini","Jacko Jack Jack","Capi Taco","Los Chihuaninis",
+  "Gattito Tacoto","Trippi Troppi Troppa Trippa","Las Capuchinas","Ballerino Lololo",
+  "Bulbito Bandito Traktorito","Los Tungtungtungcitos","Pakrahmatmamat",
+  "Ballerina Peppermintina","Los Bombinitos","Brr Es Teh Patipum","Bombadini Tortinii",
+  "Pakrahmatmamatina","Piccione Macchina","Tractoro Dinosaurio","Crabbo Limonetta",
+  "Los Orcalitos","Orcalita Orcala","Cacasito Satalito","Aquanaut",
+  "Corn Corn Corn Corn Sahur","Mummy Ambalabu","Squalana","Tartaruga Cisterna",
+  "Snailenzo","Dug Dug Dug","Ginger Globo","Yeti Claus","Glanchiello Spiritel",
+  "Tootini Shrimpini","Los Tipi Tacos","Frio Ninja","Buho de Nuelo",
+  "Piccionetta Macchina","Boba Panda","Los Gatitos","Mastodontico Telepiedone",
+  "Bambu Bambu Sahur","Chrismasmamat","Anpali Babel","Noo La Polizia",
+  "Cappuccino Clownino","Brasilini Berimbini","Skull Skull Skull","Belula Beluga",
+  "Krupuk Pagi Pagi Pagi","Cocoa Assassino","Tentacolo Tecnico","Ginger Cisterna",
+  "Pandanini Frostini","Dolphini Jetskini","Pop Pop Sahur",
+  // ── SECRET ───────────────────────────────────────────
+  "Los Matteos","La Vacca Saturno Saturnita","Bisonte Giuppitere","Karkerkar Kurkur",
+  "Trenozztruzzo Turbo 4000","Jackorila","Sammyni Spyderini","Tortuginni Dragonfrutini",
+  "Dul Dul Dul","Blackhole Goat","Chachechi","Agarrini La Palini","Los Spyderinis",
+  "Fragola La La La","Extinct Tralalero","La Cucaracha","Zombie Tralala","Los Tortus",
+  "Los Tralaleritos","Vulturino Skeletono","Boatito Auratito","Guerriro Digitale",
+  "Yes My Examen","La Vacca Prese Presente","Reindeer Tralala",
+  "La Karkerkar Combinasion","Extinct Matteo","Rocco Disco","Pumpkini Spyderini",
+  "Las Tralaleritas","Job Job Job Sahur","Los Trios","Frankentteo","Karker Sahur",
+  "Las Vaquitas Saturnitas","Los Karkeritos","Santteo","La Vacca Jacko Linterino",
+  "Triplito Tralaleritos","Trickolino","Goat","Giftini Spyderini","Perrito Burrito",
+  "Graipuss Medussi","1x1x1x1","Los Cucarachas","Please my Present",
+  "Cuadramat And Pakrahmatmamat","Bunnyman","Tung Tung Tung Sahur","Los Jobcitos",
+  "Noo My Hostpot","Nooo My Examen","List List List Sahur","Telemorte",
+  "La Sahur Combinasion","To To To To Sahur","25","Pot Hotspot",
+  "Pirolitoita Bicicleteira","Santa Hotspot","Horegini Boom","Pot Pumpkin",
+  "Quesadilla Crocodila","Naughty Naughty","Bunito Bunito Spinito","Ho Ho Ho Sahur",
+  "Mi Gatito","Chicleteira Bicicleteira","Brunito Marsito","Quesadillo Vampiro",
+  "Burrito Bandito","Chicleteirina Bicicleteirina","Chill Puppy","Los Quesadillas",
+  "Noo My Candy","Arcadopus","Los Nooo My Hotspotsitos","Rang Ring Bus",
+  "Noo my Present","Guest 666","Los Mi Gatitos","Los Chicleteiras","67",
+  "Donkeyturbo Express","Los Burritos","La Grande Combinasion","Los 25",
+  "Mariachi Corazoni","Swag Soda","Chimnino","Chicleteira Noelteira",
+  "Los Combinacionas","Nuclearo Dinossauro","Fishino Clownino","Tacorita Bicicleta",
+  "Spinny Hammy","Las Sis","Los Planitos","Los Spooky Combinacionas",
+  "Los Jolly Combinasionas","Los Hotspotsitos","Money Money Puggy","Los Mobilis",
+  "Celularcini Visiosini","Los 67","Los Candies","La Extinct Grande","Los Bros",
+  "Bacuru and Egguru","La Spooky Grande","Chillin Chillin","Chipso And Queso",
+  "Mieteteira Bicicleteira","Gobblino Uniciclino","Tralaledon","Los Puggies",
+  "Las Tacoritas","Eviledon","Orcaledon","Spaghetti Tualetti","Los Spaghettis",
+  "Lavadorito Spinito","Reinito Sleighito","Capitano Moby","Headless Horseman",
+  "Dragon Cannelloni","Rossetti Tualetti","Rosey and Teddy","Cupid Hotspot",
+  "Lovin Rose","Love Love Bear","Chicleteira Cupideira","Los Sweethearts",
+  "W or L","Esok Sekolah","Ketchuru And Musturu","Garama And Madundung",
+  "Spooky And Pompky","La Casa Boo","Fragama And Chocrama","Burguro And Fryuro",
+  "Cooki and Milki","Popuru and Fizzuru","La Romantic Grande","La Secret Combinasion",
+  "La Supreme Combinasion","La Taco Combinasion","La Sahur Combinasion",
+  "Tictac Sahur","Ketupak Kepat","Tang Tang Kelatang","Los Primos","Las Tacoritas",
+  "Rocco Disco","Boba Panda","Triplito Tralaleritos",
+  // ── OG ───────────────────────────────────────────────
+  "Skibidi Toilet","Meowl","Strawberry Elephant"
+];
+
+// Images from playbrainrot.org (fandom wiki blocks hotlinking on all external sites)
+const IMG_MAP={
+  "Tralalero Tralala":"tralalero-tralala",
+  "Lirili Larila":"liril-laril",
+  "Boneca Ambalabu":"boneca-ambalabu",
+  "Brr Brr Patapim":"brr-brr-patapim",
+  "Cappuccino Assassino":"cappuccino-assassino",
+  "Trippi Troppi":"trippi-troppi",
+  "Frigo Camelo":"frigo-camelo",
+  "La Vacca Saturno Saturnita":"la-vaca-saturno-saturnita",
+  "Ballerina Appuccina":"ballerina-cappuccina",
+  "Trullimero Trulicina":"trulimero-trulicina",
+  "Chimpanzini Babanini":"chimpanzini-bananini",
+  "Bombombini Gusini":"bombombini-gusini",
+  "Glorbo Fruttodillo":"glorbo-fruttodrillo",
+  "Blueberrenni Octopusini":"blueberrinni-octopussini",
+  "Rhino Toasterino":"rhino-toasterino",
+  "Zibra Zubra Zibralini":"zibra-zubra-zibralini",
+  "Graipuss Medussi":"graipussi-medussi",
+  "Tigrillini Watermelini":"tigrrullini-watermellini",
+  "Orangutini Ananassini":"orangutini-ananasini",
+  "Cacto Hipopotamo":"il-cacto-hipopotamo",
+  "Tric Tric Baraboom":"tric-trac-baraboom",
+  "Burbaloni Loliloli":"burbaloni-lulilolli",
+  "Girafa Cesletre":"girafa-celeste",
+  "Tung Tung Tung Sahur":"tung-tung-tung-tung-tung-tung-tung-tung-tung-sahur",
+  "Meowl":"meowl",
+  "Frurifrura":"frulli-frulla",
+  "Bisonte Giuppitere":"bisonte-giuppitere",
+  "Orcalero Orcala":"orcalero-orcala",
+  "Piccione Macchina":"piccione-macchina",
+  "Mastodontico Telepiedone":"mastodontico-telepiedone",
+  "Dragon Cannelloni":"dragon-cannelloni",
+  "Borbadiro Cocrodilo":"bombardiro-crocodilo",
+  "Metteo":"matteo",
+  "Ballerina Peppermintina":"ballerina-peppermintina",
+  "Ballerino Lololo":"ballerino-lololo",
+  "Cappuccino Clownino":"cappuccino-clownino",
+  "Sigma Boy":"sigma-boy",
+  "Sigma Girl":"sigma-girl",
+  "Skull Skull Skull":"skull-skull-skull",
+  "Cocoa Assassino":"cocoa-assassino",
+  "Aquanaut":"aquanaut",
+  "Yeti Claus":"yeti-claus",
+  "Frio Ninja":"frio-ninja",
+  "Boba Panda":"boba-panda",
+  "Ginger Globo":"ginger-globo",
+  "Snailenzo":"snailenzo",
+  "Squalana":"squalana",
+  "Blackhole Goat":"blackhole-goat",
+  "Capitano Moby":"capitano-moby",
+  "Headless Horseman":"headless-horseman",
+  "Quackula":"quackula",
+  "Puffaball":"puffaball",
+  "Skibidi Toilet":"skibidi-toilet",
+  "Strawberry Elephant":"strawberry-elephant",
+  "Tob Tobi Tobi":"tob-tobi-tobi",
+  "Tractoro Dinosaurio":"tractoro-dinosaurio",
+  "Telemorte":"telemorte",
+  "Perrito Burrito":"perrito-burrito",
+  "Burrito Bandito":"burrito-bandito",
+  "Mariachi Corazoni":"mariachi-corazoni",
+  "Swag Soda":"swag-soda",
+  "Gobblino Uniciclino":"gobblino-uniciclino",
+  "Tralaledon":"tralaledon",
+  "Eviledon":"eviledon",
+  "Orcaledon":"orcaledon",
+  "Zombie Tralala":"zombie-tralala",
+  "Reindeer Tralala":"reindeer-tralala",
+  "Frankentteo":"frankentteo",
+  "Santteo":"santteo",
+  "Cupid Hotspot":"cupid-hotspot",
+  "Lovin Rose":"lovin-rose",
+  "Love Love Bear":"love-love-bear",
+};
+const BASE_IMG='https://www.playbrainrot.org/images/characters/';
+function brImg(name){
+  const slug=IMG_MAP[name]||(name.toLowerCase()
+    .replace(/[áàä]/g,'a').replace(/[éèê]/g,'e')
+    .replace(/[íì]/g,'i').replace(/[óò]/g,'o').replace(/[úù]/g,'u')
+    .replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-'));
+  return BASE_IMG+slug+'.webp';
+}
+
+
+
+
+
+
+// pfp handled via image upload
+
+
+// ── OWNER BADGE ───────────────────────────────────────────────────────────────
+const OWNER_NAME = 'Y2KEXPLOITS';
+function crownTag(name){ return name===OWNER_NAME ? ' <span style="font-size:.85rem;" title="Owner">👑</span>' : ''; }
+function ownerBadgeHTML(name){
+  if(name!==OWNER_NAME) return '';
+  return `<div style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;font-size:.62rem;font-weight:900;padding:2px 8px;border-radius:50px;letter-spacing:1px;margin-top:4px;">👑 OWNER</div>`;
+}
+const gi=n=>(n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
+const esc=t=>{const d=document.createElement('div');d.textContent=t;return d.innerHTML;};
+const ts=()=>{const d=new Date();return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');};
+const timeAgo=iso=>{const s=Math.floor((Date.now()-new Date(iso))/1000);if(s<60)return 'Just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';};
+const dmRoom=(a,b)=>'dm__'+[a,b].sort().join('__');
+const isLight=hex=>{try{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return(r*299+g*587+b*114)/1000>128;}catch{return true;}};
+
+let sb=null, ME=null; // ME = profile row
+let allTrades=[], activeFilter='all', sortOrder='new', tradeSearch='';
+let selTrade=new Set(), offerSel=new Set(), wantSel=new Set();
+let currentPage='market', chatTab='global', currentRoom=null;
+let activeChatSub=null, dmConvos={}, totalDMNotifs=0, globalNotifs=0;
+let selectedOfferTraits=new Set();
+let vouchTargetUsername='', pendingPfpDataUrl=null;
+let vpTargetUsername=null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('load',async()=>{
+  sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  // Auto-login from localStorage
+  const saved=localStorage.getItem('bb_session');
+  if(saved){
+    try{
+      const{username,password}=JSON.parse(saved);
+      await doLoginWith(username,password,true);
+    }catch{localStorage.removeItem('bb_session');}
+  }
+});
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function switchAuthTab(t){
+  document.getElementById('atab-login').classList.toggle('active',t==='login');
+  document.getElementById('atab-signup').classList.toggle('active',t==='signup');
+  document.getElementById('auth-login').style.display=t==='login'?'block':'none';
+  document.getElementById('auth-signup').style.display=t==='signup'?'block':'none';
+}
+
+async function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  err.style.display='none';
+  if(!u||!p){err.textContent='Fill in both fields!';err.style.display='block';return;}
+  document.getElementById('login-lbl').textContent='LOGGING IN...';
+  const ok=await doLoginWith(u,p,false);
+  document.getElementById('login-lbl').textContent='LOGIN 🚀';
+  if(!ok){err.textContent='Wrong username or password!';err.style.display='block';}
+}
+
+async function doLoginWith(username,password,silent){
+  const{data,error}=await sb.from('profiles').select('*').eq('username',username).eq('password',password).single();
+  if(error||!data){return false;}
+  ME=data;
+  localStorage.setItem('bb_session',JSON.stringify({username,password}));
+  enterApp();
+  return true;
+}
+
+async function doSignup(){
+  const u=document.getElementById('signup-user').value.trim();
+  const p=document.getElementById('signup-pass').value;
+  const err=document.getElementById('signup-err');
+  const suc=document.getElementById('signup-suc');
+  err.style.display='none'; suc.style.display='none';
+  if(!u||!p){err.textContent='Fill in both fields!';err.style.display='block';return;}
+  if(u.length<2){err.textContent='Username must be 2+ characters!';err.style.display='block';return;}
+  if(p.length<4){err.textContent='Password must be 4+ characters!';err.style.display='block';return;}
+  if(!/^[a-zA-Z0-9_]+$/.test(u)){err.textContent='Username: letters, numbers, underscores only!';err.style.display='block';return;}
+  document.getElementById('signup-lbl').textContent='CREATING...';
+  // Check if username taken
+  const{data:existing}=await sb.from('profiles').select('id').eq('username',u).maybeSingle();
+  if(existing){document.getElementById('signup-lbl').textContent='CREATE ACCOUNT 🧠';err.textContent='Username already taken!';err.style.display='block';return;}
+  // Create profile
+  const{data,error}=await sb.from('profiles').insert({username:u,password:p,bio:'',pfp_emoji:'🧠',pfp_color:'#ffffff',pfp_url:''}).select().single();
+  document.getElementById('signup-lbl').textContent='CREATE ACCOUNT 🧠';
+  if(error){err.textContent='Error: '+error.message;err.style.display='block';return;}
+  ME=data;
+  localStorage.setItem('bb_session',JSON.stringify({username:u,password:p}));
+  suc.textContent='Account created! Loading...';
+  suc.style.display='block';
+  setTimeout(()=>enterApp(),800);
+}
+
+function enterApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  updateHdrPfp();
+  renderCollection();
+  loadTrades();
+  subscribeToTrades();
+  subscribeToAllMyDMs();
+  renderMyProfile();
+}
+
+function updateHdrPfp(){
+  if(!ME)return;
+  const btn=document.getElementById('hdr-pfp');
+  if(ME.pfp_url){
+    btn.style.cssText=`width:34px;height:34px;border-radius:50%;background-image:url(${ME.pfp_url});background-size:cover;background-position:center;border:none;cursor:pointer;margin-left:auto;flex-shrink:0;font-size:0;`;
+  } else {
+    btn.style.cssText=`width:34px;height:34px;border-radius:50%;background:${ME.pfp_color||'#fff'};color:${isLight(ME.pfp_color||'#fff')?'#000':'#fff'};border:none;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0;`;
+    btn.textContent=ME.pfp_emoji||'🧠';
+  }
+}
+
+// ── PFP UPLOAD ────────────────────────────────────────────────────────────────
+const NSFW_WORDS=['nude','naked','nsfw','porn','sex','xxx','adult','explicit','onlyfans','lewd','hentai','nudes','boob','dick','cock','pussy','vagina','penis'];
+
+function handlePfpUpload(input){
+  const errEl=document.getElementById('pfp-err');
+  errEl.style.display='none'; pendingPfpDataUrl=null;
+  const file=input.files[0]; if(!file) return;
+  if(file.size>2*1024*1024){errEl.textContent='Image too big! Max 2MB.';errEl.style.display='block';input.value='';return;}
+  const fname=file.name.toLowerCase();
+  if(NSFW_WORDS.some(w=>fname.includes(w))){errEl.textContent='❌ No NSFW content allowed!';errEl.style.display='block';input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    pendingPfpDataUrl=e.target.result;
+    const prev=document.getElementById('pfp-preview');
+    prev.innerHTML=`<img src="${pendingPfpDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function doLogout(){
+  if(!confirm('Log out?'))return;
+  localStorage.removeItem('bb_session');
+  location.reload();
+}
+
+// ── TRADES ────────────────────────────────────────────────────────────────────
+async function loadTrades(){
+  const{data,error}=await sb.from('trades').select('*').order('created_at',{ascending:false});
+  if(error){showToast('Error: '+error.message,true);return;}
+  allTrades=data||[]; applyFilters();
+}
+
+let marketNotifs=0;
+function subscribeToTrades(){
+  sb.channel('trades-rt'+Date.now())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'trades'},p=>{
+      allTrades.unshift(p.new); applyFilters();
+      if(p.new.user_name!==ME.username){
+        if(currentPage==='market'){
+          // Already on market, just show a quick toast that auto-dismisses
+          showToast('🔥 '+p.new.user_name+' posted a trade!');
+        } else {
+          // Off market — show badge + toast
+          marketNotifs++;
+          const mb=document.getElementById('market-badge');
+          mb.textContent=marketNotifs>9?'9+':marketNotifs;
+          mb.style.display='flex';
+          showToast('🔥 '+p.new.user_name+' posted a trade!');
+        }
+      }
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'trades'},p=>{
+      allTrades=allTrades.filter(t=>t.id!==p.old.id); applyFilters();
+    }).subscribe();
+}
+
+function applyFilters(){
+  let f=[...allTrades];
+  if(activeFilter!=='all') f=f.filter(t=>t.type===activeFilter);
+  if(tradeSearch.trim()){
+    const q=tradeSearch.toLowerCase();
+    f=f.filter(t=>(t.offering||[]).some(c=>c.toLowerCase().includes(q))||(t.wanting||[]).some(c=>c.toLowerCase().includes(q))||(t.user_name||'').toLowerCase().includes(q)||(t.description||'').toLowerCase().includes(q));
+  }
+  if(sortOrder==='old') f.reverse();
+  renderTrades(f);
+}
+function searchTrades(v){tradeSearch=v;applyFilters();}
+function filterTrades(v){activeFilter=v;applyFilters();}
+function sortTrades(v){sortOrder=v;applyFilters();}
+
+function chipHTML(n){
+  return`<div class="chip">
+    <img src="${brImg(n)}" class="char-img-sm" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+    <div class="cav" style="display:none;width:20px;height:20px;border-radius:50%;background:#fff;color:#000;align-items:center;justify-content:center;font-size:.4rem;font-weight:900;flex-shrink:0;">${gi(n)}</div>
+    ${esc(n)}
+  </div>`;
+}
+function mutationBadgeHTML(id){
+  const m=MUTATIONS.find(x=>x.id===id);
+  if(!m||m.id==='none') return '';
+  const bg=m.gradient?m.gradient:m.color+'33';
+  const dotBg=m.gradient?m.gradient:`background:${m.color}`;
+  return `<span class="trait-badge" style="background:${bg};color:#fff;border:1px solid ${m.border}99;"><span class="mut-dot" style="${m.gradient?'background:'+m.gradient:'background:'+m.color};border:1px solid ${m.border};"></span>${m.name}<span class="trait-mult">${m.mult}</span></span>`;
+}
+function traitBadgesHTML(traits){
+  if(!traits||!traits.length) return '';
+  return traits.map(id=>{
+    const t=TRAITS.find(x=>x.id===id);
+    if(!t) return '';
+    return `<span class="trait-badge" style="background:${t.color}22;color:#fff;border:1px solid ${t.border}99;"><span class="mut-dot" style="background:${t.color};border:1px solid ${t.border};"></span>${t.name}<span class="trait-mult">${t.mult}</span></span>`;
+  }).join('');
+}
+
+function renderTrades(list){
+  const el=document.getElementById('trade-list');
+  document.getElementById('tcount').textContent=(list||[]).length+' listings';
+  if(!list||!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">🕳️</div><div class="et">NO TRADES</div><div class="es">${tradeSearch?'Try a different search':'Be the first to post!'}</div></div>`;return;}
+  el.innerHTML='';
+  list.forEach(t=>{
+    const off=Array.isArray(t.offering)?t.offering:[];
+    const wan=Array.isArray(t.wanting)?t.wanting:[];
+    const isMine=t.user_name===ME.username;
+    const lbl=t.type==='offer'?'OFFERING':t.type==='want'?'WANTING':'SWAP';
+    const pfpBg=t.pfp_color||'#fff';
+    const d=document.createElement('div'); d.className='tcard';
+    d.innerHTML=`
+      <div class="tcard-head">
+        <div class="tuser" onclick="viewProfile('${esc(t.user_name)}')">
+          ${t.pfp_url?`<img src="${t.pfp_url}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.outerHTML='<div class=tav style=background:${t.pfp_color||'#fff'};color:${isLight(t.pfp_color||'#fff')?'#000':'#fff'}>${t.pfp_emoji||gi(t.user_name||'')}</div>'">`:`<div class="tav" style="background:${t.pfp_color||'#fff'};color:${isLight(t.pfp_color||'#fff')?'#000':'#fff'}">${t.pfp_emoji||gi(t.user_name||'')}</div>`}
+          <div class="tuname">${esc(t.user_name||'?')}${crownTag(t.user_name||'')}${isMine?' <span style="color:#333;font-size:.6rem;">(YOU)</span>':''}</div>
+        </div>
+        <span class="tbadge">${lbl}</span>
+      </div>
+      <div class="tcard-body">
+        <div class="tlabel">${t.type==='want'?'Looking For':'Has / Offering'}</div>
+        <div class="chips">${off.length?off.map(chipHTML).join(''):'<span style="color:#1a1a1a;font-size:.7rem;">None listed</span>'}</div>
+        ${(t.mutation&&t.mutation!=='none')?`<div style="margin-bottom:4px;">${mutationBadgeHTML(t.mutation)}</div>`:''}
+        ${(t.traits&&t.traits.length)?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px;">${traitBadgesHTML(t.traits)}</div>`:''}
+        ${t.income?`<div style="font-size:.72rem;color:#aaa;margin-bottom:5px;">💰 <span style="color:#fff;font-weight:800;">${esc(t.income)}</span>/s</div>`:''}
+        ${wan.length?`<div class="tlabel" style="margin-top:4px;">Wants In Return</div><div class="chips">${wan.map(chipHTML).join('')}</div>`:''}
+        ${(t.want_mutation&&t.want_mutation!==''&&t.want_mutation!=='none')?`<div style="margin-top:3px;font-size:.68rem;color:#555;">Wants mutation: ${mutationBadgeHTML(t.want_mutation)}</div>`:''}
+        ${(t.want_traits&&t.want_traits.length)?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">${traitBadgesHTML(t.want_traits)}</div>`:''}
+        ${t.description?`<div class="tdesc">${esc(t.description)}</div>`:''}
+      </div>
+      <div class="tcard-foot">
+        <span class="ttime">${timeAgo(t.created_at)}</span>
+        <div class="tactions">
+          ${!isMine?`<button class="bxs" onclick="openPrivateDM('${esc(t.user_name)}')">💬 DM</button>`:''}
+          ${isMine?`<button class="bxs bxs-del" onclick="deleteTrade('${t.id}')">🗑</button>`:''}
+        </div>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+async function deleteTrade(id){
+  if(!confirm('Delete?'))return;
+  await sb.from('trades').delete().eq('id',id).eq('user_name',ME.username);
+  showToast('Deleted.');
+}
+
+async function submitTrade(){
+  const type=document.getElementById('post-type').value;
+  const description=document.getElementById('post-desc').value.trim();
+  const incomeNum=document.getElementById('post-income-num').value.trim();
+  const incomeUnit=document.getElementById('post-income-unit').value;
+  const income=incomeNum?(incomeNum+(incomeUnit==='$'?'':incomeUnit)+'/s'):'';
+  const offering=[...offerSel], wanting=[...wantSel];
+  const offerTraits=getDropdownSelections('offer-traits-dd');
+  const wantTraits=getDropdownSelections('want-traits-dd');
+  const offerMutation=document.getElementById('offer-mutation-dd')?.value||'none';
+  const wantMutation=document.getElementById('want-mutation-dd')?.value||'';
+  if(!offering.length){showToast('Pick at least 1 character!');return;}
+  const btn=document.getElementById('submit-btn');
+  btn.textContent='POSTING...'; btn.disabled=true;
+  const{error}=await sb.from('trades').insert({
+    user_name:ME.username, pfp_emoji:ME.pfp_emoji||'🧠',
+    pfp_color:ME.pfp_color||'#fff', pfp_url:ME.pfp_url||'',
+    type, offering, wanting, description, income,
+    traits: offerTraits, mutation: offerMutation,
+    want_traits: wantTraits, want_mutation: wantMutation
+  });
+  btn.textContent='POST 🚀'; btn.disabled=false;
+  if(error){showToast('Error: '+error.message,true);return;}
+  cm('post-modal'); selTrade.clear();
+  document.getElementById('post-desc').value='';
+  document.getElementById('post-income-num').value='';
+  showToast('🔥 Trade posted!');
+}
+
+// ── PROFILE ───────────────────────────────────────────────────────────────────
+async function renderMyProfile(){
+  if(!ME)return;
+  const{data:vouches}=await sb.from('vouches').select('*').eq('to_user',ME.username).order('created_at',{ascending:false});
+  const{count:tc}=await sb.from('trades').select('id',{count:'exact',head:true}).eq('user_name',ME.username);
+  const el=document.getElementById('profile-content');
+  const pfpBg=ME.pfp_color||'#fff';
+  el.innerHTML=`
+    <div class="profile-banner" style="background:linear-gradient(135deg,${ME.pfp_color||'#fff'}33,#000);">
+      <div class="profile-pfp-wrap">
+        <div class="profile-pfp" style="${ME.pfp_url?`background-image:url(${ME.pfp_url});background-size:cover;background-position:center;font-size:0`:`background:${ME.pfp_color||'#fff'};color:${isLight(ME.pfp_color||'#fff')?'#000':'#fff'}`};" onclick="openEditProfile()">${ME.pfp_url?'':ME.pfp_emoji||'🧠'}</div>
+      </div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-uname">${esc(ME.username)}${crownTag(ME.username)}</div>
+      <div class="profile-bio">${ME.bio?esc(ME.bio):'<span style="color:#222;">No bio yet — tap edit to add one</span>'}</div>
+      <div class="pstats">
+        <div class="pstat"><div class="n">${tc||0}</div><div class="l">TRADES</div></div>
+        <div class="pstat"><div class="n">${(vouches||[]).length}</div><div class="l">VOUCHES</div></div>
+      </div>
+    </div>
+    <div class="profile-actions">
+      <button class="btn btn-w" style="font-size:.75rem;padding:7px 13px;" onclick="openEditProfile()">✏️ EDIT PROFILE</button>
+      <button class="btn btn-red" style="font-size:.75rem;padding:7px 13px;" onclick="doLogout()">LOGOUT</button>
+    </div>
+    <div class="vouches-sec">
+      <div class="v-title">✅ VOUCHES (${(vouches||[]).length})</div>
+      ${(vouches||[]).length?vouches.map(v=>`
+        <div class="vouch-card">
+          <div class="vouch-from">
+            <div class="v-av">${gi(v.from_user||'?')}</div>
+            <div class="v-name">${esc(v.from_user||'?')}${crownTag(v.from_user||'?')}</div>
+          </div>
+          ${v.message?`<div class="v-msg">${esc(v.message)}</div>`:''}
+          <div class="v-time">${timeAgo(v.created_at)}</div>
+        </div>`).join(''):'<div style="color:#1a1a1a;font-size:.8rem;">No vouches yet — start trading!</div>'}
+    </div>`;
+}
+
+async function viewProfile(username){
+  if(username===ME.username){goPage('profile');return;}
+  vpTargetUsername=username;
+  document.getElementById('vp-title').innerHTML=username.toUpperCase()+(username===OWNER_NAME?' 👑':'');
+  document.getElementById('vp-body').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  document.getElementById('vp-foot').style.display='none';
+  document.getElementById('vp-modal').classList.add('open');
+  const{data:profile}=await sb.from('profiles').select('*').eq('username',username).single();
+  const{data:vouches}=await sb.from('vouches').select('*').eq('to_user',username).order('created_at',{ascending:false});
+  const{count:tc}=await sb.from('trades').select('id',{count:'exact',head:true}).eq('user_name',username);
+  const alreadyVouched=(vouches||[]).some(v=>v.from_user===ME.username);
+  const pfpBg=profile?.pfp_color||'#fff';
+  document.getElementById('vp-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      ${profile?.pfp_url?`<img src="${profile.pfp_url}" style="width:54px;height:54px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:54px;height:54px;border-radius:50%;background:${profile?.pfp_color||'#fff'};color:${isLight(profile?.pfp_color||'#fff')?'#000':'#fff'};display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">${profile?.pfp_emoji||'🧠'}</div>`}
+      <div>
+        <div style="font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:2px;">${esc(username)}${crownTag(username)}</div>
+        ${ownerBadgeHTML(username)}
+        <div style="font-size:.78rem;color:#333;margin-top:3px;">${profile?.bio?esc(profile.bio):'No bio'}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #111;">
+      <div class="pstat"><div class="n">${tc||0}</div><div class="l">TRADES</div></div>
+      <div class="pstat"><div class="n">${(vouches||[]).length}</div><div class="l">VOUCHES</div></div>
+    </div>
+    <div class="v-title">✅ VOUCHES</div>
+    ${(vouches||[]).length?vouches.map(v=>`
+      <div class="vouch-card">
+        <div class="vouch-from"><div class="v-av">${gi(v.from_user||'?')}</div><div class="v-name">${esc(v.from_user||'?')}</div></div>
+        ${v.message?`<div class="v-msg">${esc(v.message)}</div>`:''}
+        <div class="v-time">${timeAgo(v.created_at)}</div>
+      </div>`).join(''):'<div style="color:#1a1a1a;font-size:.8rem;">No vouches yet</div>'}`;
+  const foot=document.getElementById('vp-foot');
+  foot.style.display='flex';
+  document.getElementById('vp-dm-btn').onclick=()=>{cm('vp-modal');openPrivateDM(username);};
+  const vb=document.getElementById('vp-vouch-btn');
+  if(alreadyVouched){vb.textContent='✅ VOUCHED';vb.disabled=true;vb.style.opacity='.4';}
+  else{vb.textContent='✅ VOUCH';vb.disabled=false;vb.style.opacity='1';vb.onclick=()=>openVouchModal(username);}
+}
+
+function openVouchModal(username){
+  cm('vp-modal');
+  vouchTargetUsername=username;
+  document.getElementById('vouch-for').textContent=username;
+  document.getElementById('vouch-msg').value='';
+  document.getElementById('vouch-modal').classList.add('open');
+}
+
+async function submitVouch(){
+  const msg=document.getElementById('vouch-msg').value.trim();
+  const{error}=await sb.from('vouches').insert({from_user:ME.username,to_user:vouchTargetUsername,message:msg});
+  if(error){showToast(error.message.includes('unique')?'Already vouched!':'Error: '+error.message,true);return;}
+  cm('vouch-modal');
+  showToast('✅ Vouch added!','ok');
+}
+
+// ── EDIT PROFILE ──────────────────────────────────────────────────────────────
+function openEditProfile(){
+  if(!ME)return;
+  pendingPfpDataUrl=null;
+  document.getElementById('edit-bio').value=ME.bio||'';
+  document.getElementById('pfp-err').style.display='none';
+  document.getElementById('pfp-file').value='';
+  // Show current pfp in preview
+  const prev=document.getElementById('pfp-preview');
+  if(ME.pfp_url){
+    prev.innerHTML=`<img src="${ME.pfp_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  } else {
+    prev.style.background=ME.pfp_color||'#fff';
+    prev.style.color=isLight(ME.pfp_color||'#fff')?'#000':'#fff';
+    prev.textContent=ME.pfp_emoji||'🧠';
+    prev.style.display='flex';
+    prev.style.alignItems='center';
+    prev.style.justifyContent='center';
+    prev.style.fontSize='1.6rem';
+  }
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+async function saveProfile(){
+  const bio=document.getElementById('edit-bio').value.trim();
+  const btn=document.getElementById('save-profile-btn');
+  btn.textContent='SAVING...'; btn.disabled=true;
+  const updates={bio};
+  if(pendingPfpDataUrl) updates.pfp_url=pendingPfpDataUrl;
+  const{error}=await sb.from('profiles').update(updates).eq('username',ME.username);
+  btn.textContent='SAVE ✓'; btn.disabled=false;
+  if(error){showToast('Error: '+error.message,true);return;}
+  ME={...ME,...updates};
+  cm('edit-modal'); updateHdrPfp(); renderMyProfile();
+  showToast('Profile saved! ✓','ok');
+}
+
+// ── CHAT ──────────────────────────────────────────────────────────────────────
+function switchChatTab(t){
+  chatTab=t;
+  document.getElementById('tab-global').classList.toggle('active',t==='global');
+  document.getElementById('tab-dms').classList.toggle('active',t==='dms');
+  document.getElementById('chat-global-tab').style.display=t==='global'?'block':'none';
+  document.getElementById('chat-dms-tab').style.display=t==='dms'?'block':'none';
+  if(t==='dms') renderDMList();
+}
+
+async function openChat(room,displayName,avText){
+  currentRoom=room;
+  const av=document.getElementById('chat-av');
+  av.textContent=avText; av.style.background='#fff'; av.style.color='#000';
+  if(avText!=='🌍'&&dmConvos[room]){av.style.background=dmConvos[room].color||'#fff';av.style.color=isLight(dmConvos[room].color||'#fff')?'#000':'#fff';}
+  document.getElementById('chat-nm').textContent=displayName.toUpperCase();
+  document.getElementById('chat-st').textContent=room==='global'?'● Everyone can see this':'● Private';
+  document.getElementById('chat-view').classList.add('open');
+  await loadMessages(room);
+  subscribeToRoom(room);
+  if(room==='global'){globalNotifs=0;}
+  else{if(dmConvos[room])dmConvos[room].unread=0;updateDMNotifCount();renderDMList();}
+  updateBadges();
+}
+
+function openPrivateDM(otherUsername){
+  const room=dmRoom(ME.username,otherUsername);
+  if(!dmConvos[room]) dmConvos[room]={otherUser:otherUsername,lastMsg:'',lastTime:'',unread:0,emoji:'🧠',color:'#fff'};
+  goPage('chat'); switchChatTab('dms');
+  setTimeout(()=>openChat(room,otherUsername,dmConvos[room].emoji||'🧠'),120);
+}
+
+function closeChat(){
+  document.getElementById('chat-view').classList.remove('open');
+  if(activeChatSub){sb.removeChannel(activeChatSub);activeChatSub=null;}
+  currentRoom=null; renderDMList();
+}
+
+async function loadMessages(room){
+  const box=document.getElementById('chat-msgs');
+  box.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  const{data,error}=await sb.from('messages').select('*').eq('room',room).order('created_at',{ascending:true}).limit(100);
+  if(error){box.innerHTML=`<div class="empty-state"><div class="et">ERROR</div></div>`;return;}
+  box.innerHTML='';
+  if(!data.length){box.innerHTML=`<div class="empty-state" style="padding:26px 20px;"><div class="ei">👋</div><div class="et">SAY SOMETHING</div></div>`;return;}
+  data.forEach(m=>appendMsg(m,false));
+  box.scrollTop=box.scrollHeight;
+}
+
+function appendMsg(m,scroll=true){
+  const box=document.getElementById('chat-msgs');
+  const es=box.querySelector('.empty-state,.loading'); if(es)es.remove();
+  const mine=m.user_name===ME.username;
+  const pfpBg=m.pfp_color||'#fff';
+  const d=document.createElement('div'); d.className='msg-row'+(mine?' mine':'');
+  d.innerHTML=`
+    ${m.pfp_url?`<img src="${m.pfp_url}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div class="msg-av" style="background:${m.pfp_color||'#fff'};color:${isLight(m.pfp_color||'#fff')?'#000':'#fff'}">${m.pfp_emoji||gi(m.user_name||'')}</div>`}
+    <div>
+      ${!mine?`<div class="msg-sender">${esc(m.user_name||'')}${crownTag(m.user_name||'')}</div>`:''}
+      <div class="msg-bubble">${esc(m.text)}</div>
+      <div class="msg-time">${ts()}</div>
+    </div>`;
+  box.appendChild(d);
+  if(scroll) box.scrollTop=box.scrollHeight;
+}
+
+function subscribeToRoom(room){
+  if(activeChatSub){sb.removeChannel(activeChatSub);activeChatSub=null;}
+  activeChatSub=sb.channel('room-'+room+'-'+Date.now())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`room=eq.${room}`},p=>{
+      if(p.new.user_name!==ME.username){
+        if(currentRoom===room) appendMsg(p.new);
+        if(dmConvos[room]){dmConvos[room].lastMsg=p.new.text;dmConvos[room].lastTime=ts();if(currentRoom!==room)dmConvos[room].unread=(dmConvos[room].unread||0)+1;renderDMList();updateDMNotifCount();}
+      }
+    }).subscribe();
+}
+
+function subscribeToAllMyDMs(){
+  sb.channel('all-msgs-'+Date.now())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>{
+      const r=p.new.room; if(p.new.user_name===ME.username) return;
+      if(r==='global'){if(currentPage!=='chat'){globalNotifs++;updateBadges();}}
+      else if(r.includes(ME.username)){
+        const parts=r.replace('dm__','').split('__');
+        const other=parts.find(u=>u!==ME.username)||'Unknown';
+        if(!dmConvos[r]) dmConvos[r]={otherUser:other,lastMsg:p.new.text,lastTime:ts(),unread:1,emoji:p.new.pfp_emoji||'🧠',color:p.new.pfp_color||'#fff'};
+        else{dmConvos[r].lastMsg=p.new.text;dmConvos[r].lastTime=ts();if(currentRoom!==r)dmConvos[r].unread=(dmConvos[r].unread||0)+1;}
+        if(currentPage!=='chat'){updateDMNotifCount();updateBadges();}
+        renderDMList();
+        if(currentPage!=='chat') showToast('💬 DM from '+p.new.user_name);
+      }
+    }).subscribe();
+}
+
+function renderDMList(){
+  const list=document.getElementById('dm-list');
+  const convos=Object.entries(dmConvos);
+  if(!convos.length){list.innerHTML=`<div style="text-align:center;padding:28px;color:#1a1a1a;font-size:.8rem;">No DMs yet — hit DM on a trade post!</div>`;return;}
+  list.innerHTML='';
+  convos.forEach(([room,c])=>{
+    const d=document.createElement('div'); d.className='dm-li'+(c.unread?' unread':'');
+    d.onclick=()=>openChat(room,c.otherUser,c.emoji||'🧠');
+    d.innerHTML=`
+      <div class="dli-av" style="background:${c.color||'#fff'};color:${isLight(c.color||'#fff')?'#000':'#fff'}">${c.emoji||'🧠'}</div>
+      <div class="dli-info"><div class="dli-name">${esc(c.otherUser)}${crownTag(c.otherUser)}</div><div class="dli-preview">${esc(c.lastMsg||'Tap to open')}</div></div>
+      <div class="dli-meta">
+        <div class="dli-time">${c.lastTime||''}</div>
+        ${c.unread?`<div class="dli-badge">${c.unread}</div>`:''}
+      </div>`;
+    list.appendChild(d);
+  });
+}
+
+function updateDMNotifCount(){
+  const t=Object.values(dmConvos).reduce((s,c)=>s+(c.unread||0),0);
+  totalDMNotifs=t;
+  document.getElementById('dm-nc').textContent=t>0?`(${t})`:'';
+  updateBadges();
+}
+function updateBadges(){
+  const t=totalDMNotifs+globalNotifs;
+  const b=document.getElementById('chat-badge');
+  if(t>0){b.textContent=t>9?'9+':t;b.style.display='flex';}
+  else{b.style.display='none';b.textContent='';}
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('chat-inp');
+  const text=inp.value.trim(); if(!text||!currentRoom)return;
+  inp.value='';
+  const msgData={user_name:ME.username,pfp_emoji:ME.pfp_emoji||'🧠',pfp_color:ME.pfp_color||'#fff',pfp_url:ME.pfp_url||'',text,room:currentRoom};
+  appendMsg(msgData);
+  await sb.from('messages').insert(msgData);
+}
+
+function openNewDM(){document.getElementById('new-dm-modal').classList.add('open');}
+function startNewDM(){
+  const t=document.getElementById('dm-target').value.trim();
+  if(!t){showToast('Enter a username!');return;}
+  if(t===ME.username){showToast("Can't DM yourself 💀");return;}
+  cm('new-dm-modal'); document.getElementById('dm-target').value='';
+  openPrivateDM(t);
+}
+
+// ── COLLECTION ────────────────────────────────────────────────────────────────
+function renderCollection(filter=''){
+  const g=document.getElementById('col-grid'); g.innerHTML='';
+  BR.filter(n=>n.toLowerCase().includes(filter.toLowerCase())).forEach(name=>{
+    const d=document.createElement('div'); d.className='citem'+(selTrade.has(name)?' sel':'');
+    d.innerHTML=`<img src="${brImg(name)}" class="char-img" style="margin:0 auto 3px;" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="cav2" style="display:none;">${gi(name)}</div><div class="cn">${name}</div><div class="chk">✓</div>`;
+    d.onclick=()=>{selTrade.has(name)?selTrade.delete(name):selTrade.add(name);d.classList.toggle('sel');document.getElementById('col-sub').textContent=selTrade.size+' selected';};
+    g.appendChild(d);
+  });
+  document.getElementById('col-sub').textContent=selTrade.size+' selected';
+}
+function filterCollection(v){renderCollection(v);}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function buildPicker(id,sel,filter=''){
+  const el=document.getElementById(id); el.innerHTML='';
+  BR.filter(n=>n.toLowerCase().includes(filter.toLowerCase())).forEach(name=>{
+    const d=document.createElement('div'); d.className='cpi'+(sel.has(name)?' sel':'');
+    const imgSlug=brImg(name);
+    d.innerHTML=`<img src="${imgSlug}" style="width:30px;height:30px;border-radius:5px;object-fit:cover;margin:0 auto 2px;display:block;background:#111;" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="cpav" style="display:none;">${gi(name)}</div>${name}`;
+    d.onclick=()=>{sel.has(name)?sel.delete(name):sel.add(name);d.classList.toggle('sel');document.getElementById(id==='offer-picker'?'offer-count':'want-count').textContent=sel.size+' selected';};
+    el.appendChild(d);
+  });
+}
+function filterPicker(type,v){if(type==='offer')buildPicker('offer-picker',offerSel,v);else buildPicker('want-picker',wantSel,v);}
+// ── DROPDOWN BUILDERS ────────────────────────────────────────────────────────
+function colorBlock(item){
+  // Returns a unicode block char — we use a colored square approach via option text
+  // Since HTML options can't have colored backgrounds per-option in most browsers,
+  // we prepend a colored emoji-style block using unicode + name
+  if(item.gradient) return '🌈';
+  const r=parseInt(item.color.slice(1,3),16);
+  const g=parseInt(item.color.slice(3,5),16);
+  const b=parseInt(item.color.slice(5,7),16);
+  // Pick a visible unicode block
+  return '■';
+}
+
+function buildMutationDropdown(selectId, includeNone=true){
+  const el=document.getElementById(selectId); if(!el) return;
+  el.innerHTML='';
+  MUTATIONS.forEach(m=>{
+    if(!includeNone && m.id==='none') return;
+    const opt=document.createElement('option');
+    opt.value=m.id;
+    const icon = m.gradient ? '🌈' : '■';
+    opt.textContent=`${icon} ${m.name}  (${m.mult})`;
+    opt.style.background='#111'; opt.style.color='#fff';
+    opt.dataset.color=m.color;
+    el.appendChild(opt);
+  });
+}
+
+function buildTraitsDropdown(selectId){
+  const el=document.getElementById(selectId); if(!el) return;
+  el.innerHTML='';
+  const blank=document.createElement('option');
+  blank.value=''; blank.textContent='— None —';
+  blank.style.background='#111'; blank.style.color='#444';
+  el.appendChild(blank);
+  TRAITS.forEach(t=>{
+    const opt=document.createElement('option');
+    opt.value=t.id;
+    opt.textContent=`■ ${t.name}  (${t.mult})`;
+    opt.style.background='#111'; opt.style.color='#fff';
+    opt.dataset.color=t.color;
+    el.appendChild(opt);
+  });
+}
+
+function getDropdownSelections(selectId){
+  const el=document.getElementById(selectId); if(!el) return [];
+  return Array.from(el.selectedOptions).map(o=>o.value).filter(v=>v!=='');
+}
+
+// buildTraitPicker removed — using dropdowns now
+
+function openPostModal(){
+  offerSel=new Set(selTrade); wantSel=new Set();
+  document.getElementById('offer-search').value='';
+  document.getElementById('want-search').value='';
+  document.getElementById('offer-count').textContent=offerSel.size+' selected';
+  document.getElementById('want-count').textContent='0 selected';
+  document.getElementById('post-income-num').value='';
+  document.getElementById('post-income-unit').value='M';
+  buildPicker('offer-picker',offerSel,'');
+  buildPicker('want-picker',wantSel,'');
+  buildMutationDropdown('offer-mutation-dd', true);
+  buildMutationDropdown('want-mutation-dd', true);
+  buildTraitsDropdown('offer-traits-dd');
+  buildTraitsDropdown('want-traits-dd');
+  document.getElementById('post-modal').classList.add('open');
+}
+function openPostModalWithSelected(){if(!selTrade.size){showToast('Select characters first!');return;}openPostModal();}
+function cm(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function goPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('bnav-'+p).classList.add('active');
+  currentPage=p;
+  if(p==='collection') renderCollection();
+  if(p==='profile') renderMyProfile();
+  if(p==='market'){
+    // Clear market badge
+    marketNotifs=0;
+    const mb=document.getElementById('market-badge');
+    mb.style.display='none'; mb.textContent='';
+  }
+  if(p==='chat'){
+    // Clear ALL chat notifications
+    globalNotifs=0;
+    Object.values(dmConvos).forEach(c=>{ c.unread=0; });
+    totalDMNotifs=0;
+    document.getElementById('dm-nc').textContent='';
+    updateBadges();
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg,type=false){
+  const t=document.getElementById('toast');
+  // Clear any existing timer and remove show class first
+  clearTimeout(t._t);
+  t.classList.remove('show');
+  t.textContent=msg;
+  t.className='toast'+(type==='ok'?' ok':type?' err':'');
+  // Small delay so remove+add triggers CSS transition properly
+  requestAnimationFrame(()=>{
+    t.classList.add('show');
+    t._t=setTimeout(()=>t.classList.remove('show'),2800);
+  });
+}
+</script>
+</body>
+</html>// ── ALL MUTATIONS (one per brainrot) ─────────────────────────────────────────
+const MUTATIONS = [
+  {id:'none',        name:'None',           color:'#444444', border:'#666666', mult:'1x'   },
+  {id:'gold',        name:'Gold',           color:'#FFD700', border:'#FFA000', mult:'1.25x'},
+  {id:'diamond',     name:'Diamond',        color:'#4FC3F7', border:'#0288D1', mult:'1.5x' },
+  {id:'bloodrot',    name:'Bloodrot',       color:'#E53935', border:'#B71C1C', mult:'2x'   },
+  {id:'celestial',   name:'Celestial',      color:'#B39DDB', border:'#7E57C2', mult:'4x'   },
+  {id:'candy',       name:'Candy',          color:'#F48FB1', border:'#E91E63', mult:'4x'   },
+  {id:'bubblegum',   name:'Bubblegum',      color:'#CE93D8', border:'#9C27B0', mult:'4x'   },
+  {id:'cursed',      name:'Cursed',         color:'#424242', border:'#757575', mult:'?x'   },
+  {id:'lava',        name:'Lava',           color:'#FF7043', border:'#D32F2F', mult:'6x'   },
+  {id:'glitch',      name:'Glitch',         color:'#B2FF59', border:'#64DD17', mult:'6x'   },
+  {id:'galaxy',      name:'Galaxy',         color:'#7E57C2', border:'#4527A0', mult:'7x'   },
+  {id:'yinyang',     name:'Yin Yang',       color:'#ECEFF1', border:'#90A4AE', mult:'7.5x' },
+  {id:'strawberryop',name:'Strawberry OP',  color:'#EF9A9A', border:'#E53935', mult:'8x'   },
+  {id:'radioactive', name:'Radioactive',    color:'#CCFF00', border:'#76FF03', mult:'8.5x' },
+  {id:'divine',      name:'Divine',         color:'#FFF9C4', border:'#F9A825', mult:'9x'   },
+  {id:'rainbow',     name:'Rainbow',        color:'#FF0000', border:'#FF00FF', mult:'9x', gradient:'linear-gradient(135deg,#ff0000,#ff7700,#ffff00,#00ff00,#0000ff,#8b00ff)'},
+];
+
+// ── ALL TRAITS (official — confirmed from stealabrainrot fandom wiki) ─────────
+// Exactly 16 confirmed traits. Multipliers are additive modifiers.
+const TRAITS = [
+  // Weather traits (natural, random)
+  {id:'rain',       name:'Rain',       color:'#4FC3F7', border:'#0288D1', mult:'2.5x', how:'Random weather event'},
+  {id:'snow',       name:'Snow',       color:'#B3E5FC', border:'#29B6F6', mult:'3x',   how:'Random weather event'},
+  {id:'starfall',   name:'Starfall',   color:'#FFF176', border:'#F9A825', mult:'3.5x', how:'Random weather event'},
+  // Ritual traits
+  {id:'taco',       name:'Taco',       color:'#FFCC80', border:'#FF8F00', mult:'3x',   how:'Raining Tacos admin event (taco cannon)'},
+  {id:'shark',      name:'Shark',      color:'#29B6F6', border:'#01579B', mult:'3x',   how:'Orcalero Orcala ritual (4 players)'},
+  {id:'bombardiro', name:'Bombardiro', color:'#81C784', border:'#388E3C', mult:'4x',   how:'Bombardiro Crocodilo ritual (3 players)'},
+  {id:'asteroid',   name:'Asteroid',   color:'#CE93D8', border:'#7B1FA2', mult:'4x',   how:'La Vacca Saturno ritual (triangle)'},
+  {id:'matteohat',  name:'Matteo Hat', color:'#90A4AE', border:'#455A64', mult:'4x',   how:'Los Matteos ritual (stack 3 Matteos)'},
+  {id:'bubblegum',  name:'Bubblegum',  color:'#F48FB1', border:'#C2185B', mult:'4x',   how:'Bubblegum Machine (10 Candy brainrots)'},
+  {id:'tungtung',   name:'Tung Tung',  color:'#BCAAA4', border:'#6D4C41', mult:'4x',   how:'Tung Tung Attack admin event'},
+  // Admin event traits
+  {id:'crabrave',   name:'Crab Rave',  color:'#EF5350', border:'#B71C1C', mult:'5x',   how:'Crab Rave admin event'},
+  {id:'glitch',     name:'Glitch',     color:'#B2FF59', border:'#64DD17', mult:'5x',   how:'Glitch admin event'},
+  {id:'fire',       name:'Fire',       color:'#FF7043', border:'#BF360C', mult:'5x',   how:'Solar Flare admin event'},
+  {id:'concert',    name:'Concert',    color:'#F06292', border:'#880E4F', mult:'5x',   how:'Brainrot Concert admin event'},
+  {id:'nyancat',    name:'Nyan Cat',   color:'#EC407A', border:'#880E4F', mult:'6x',   how:'Nyan Cat admin event'},
+  {id:'firework',   name:'Firework',   color:'#FFB300', border:'#E65100', mult:'6x',   how:'July 4th fireworks admin event'},
+  {id:'10b',        name:'10B',        color:'#66BB6A', border:'#1B5E20', mult:'3x',   how:'10 Billion Visits celebration event'},
+];
+
+
+
+// Images from playbrainrot.org (fandom wiki blocks hotlinking on all external sites)
+const IMG_MAP={
+  "Tralalero Tralala":"tralalero-tralala",
+  "Lirili Larila":"liril-laril",
+  "Boneca Ambalabu":"boneca-ambalabu",
+  "Brr Brr Patapim":"brr-brr-patapim",
+  "Cappuccino Assassino":"cappuccino-assassino",
+  "Trippi Troppi":"trippi-troppi",
+  "Frigo Camelo":"frigo-camelo",
+  "La Vacca Saturno Saturnita":"la-vaca-saturno-saturnita",
+  "Ballerina Appuccina":"ballerina-cappuccina",
+  "Trullimero Trulicina":"trulimero-trulicina",
+  "Chimpanzini Babanini":"chimpanzini-bananini",
+  "Bombombini Gusini":"bombombini-gusini",
+  "Glorbo Fruttodillo":"glorbo-fruttodrillo",
+  "Blueberrenni Octopusini":"blueberrinni-octopussini",
+  "Rhino Toasterino":"rhino-toasterino",
+  "Zibra Zubra Zibralini":"zibra-zubra-zibralini",
+  "Graipuss Medussi":"graipussi-medussi",
+  "Tigrillini Watermelini":"tigrrullini-watermellini",
+  "Orangutini Ananassini":"orangutini-ananasini",
+  "Cacto Hipopotamo":"il-cacto-hipopotamo",
+  "Tric Tric Baraboom":"tric-trac-baraboom",
+  "Burbaloni Loliloli":"burbaloni-lulilolli",
+  "Girafa Cesletre":"girafa-celeste",
+  "Tung Tung Tung Sahur":"tung-tung-tung-tung-tung-tung-tung-tung-tung-sahur",
+  "Meowl":"meowl",
+  "Frurifrura":"frulli-frulla",
+  "Bisonte Giuppitere":"bisonte-giuppitere",
+  "Orcalero Orcala":"orcalero-orcala",
+  "Piccione Macchina":"piccione-macchina",
+  "Mastodontico Telepiedone":"mastodontico-telepiedone",
+  "Dragon Cannelloni":"dragon-cannelloni",
+  "Borbadiro Cocrodilo":"bombardiro-crocodilo",
+  "Metteo":"matteo",
+  "Ballerina Peppermintina":"ballerina-peppermintina",
+  "Ballerino Lololo":"ballerino-lololo",
+  "Cappuccino Clownino":"cappuccino-clownino",
+  "Sigma Boy":"sigma-boy",
+  "Sigma Girl":"sigma-girl",
+  "Skull Skull Skull":"skull-skull-skull",
+  "Cocoa Assassino":"cocoa-assassino",
+  "Aquanaut":"aquanaut",
+  "Yeti Claus":"yeti-claus",
+  "Frio Ninja":"frio-ninja",
+  "Boba Panda":"boba-panda",
+  "Ginger Globo":"ginger-globo",
+  "Snailenzo":"snailenzo",
+  "Squalana":"squalana",
+  "Blackhole Goat":"blackhole-goat",
+  "Capitano Moby":"capitano-moby",
+  "Headless Horseman":"headless-horseman",
+  "Quackula":"quackula",
+  "Puffaball":"puffaball",
+  "Skibidi Toilet":"skibidi-toilet",
+  "Strawberry Elephant":"strawberry-elephant",
+  "Tob Tobi Tobi":"tob-tobi-tobi",
+  "Tractoro Dinosaurio":"tractoro-dinosaurio",
+  "Telemorte":"telemorte",
+  "Perrito Burrito":"perrito-burrito",
+  "Burrito Bandito":"burrito-bandito",
+  "Mariachi Corazoni":"mariachi-corazoni",
+  "Swag Soda":"swag-soda",
+  "Gobblino Uniciclino":"gobblino-uniciclino",
+  "Tralaledon":"tralaledon",
+  "Eviledon":"eviledon",
+  "Orcaledon":"orcaledon",
+  "Zombie Tralala":"zombie-tralala",
+  "Reindeer Tralala":"reindeer-tralala",
+  "Frankentteo":"frankentteo",
+  "Santteo":"santteo",
+  "Cupid Hotspot":"cupid-hotspot",
+  "Lovin Rose":"lovin-rose",
+  "Love Love Bear":"love-love-bear",
+};
+const BASE_IMG='https://www.playbrainrot.org/images/characters/';
+function brImg(name){
+  const slug=IMG_MAP[name]||(name.toLowerCase()
+    .replace(/[áàä]/g,'a').replace(/[éèê]/g,'e')
+    .replace(/[íì]/g,'i').replace(/[óò]/g,'o').replace(/[úù]/g,'u')
+    .replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-'));
+  return BASE_IMG+slug+'.webp';
+}
+
+
+
+
+
+
+// pfp handled via image upload
+
+
+// ── OWNER BADGE ───────────────────────────────────────────────────────────────
+const OWNER_NAME = 'Y2KEXPLOITS';
+function crownTag(name){ return name===OWNER_NAME ? ' <span style="font-size:.85rem;" title="Owner">👑</span>' : ''; }
+function ownerBadgeHTML(name){
+  if(name!==OWNER_NAME) return '';
+  return `<div style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;font-size:.62rem;font-weight:900;padding:2px 8px;border-radius:50px;letter-spacing:1px;margin-top:4px;">👑 OWNER</div>`;
+}
+const gi=n=>(n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
+const esc=t=>{const d=document.createElement('div');d.textContent=t;return d.innerHTML;};
+const ts=()=>{const d=new Date();return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');};
+const timeAgo=iso=>{const s=Math.floor((Date.now()-new Date(iso))/1000);if(s<60)return 'Just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';};
+const dmRoom=(a,b)=>'dm__'+[a,b].sort().join('__');
+const isLight=hex=>{try{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return(r*299+g*587+b*114)/1000>128;}catch{return true;}};
+
+let sb=null, ME=null; // ME = profile row
+let allTrades=[], activeFilter='all', sortOrder='new', tradeSearch='';
+let selTrade=new Set(), offerSel=new Set(), wantSel=new Set();
+let currentPage='market', chatTab='global', currentRoom=null;
+let activeChatSub=null, dmConvos={}, totalDMNotifs=0, globalNotifs=0;
+let selectedOfferTraits=new Set();
+let vouchTargetUsername='', pendingPfpDataUrl=null;
+let vpTargetUsername=null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('load',async()=>{
+  sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  // Auto-login from localStorage
+  const saved=localStorage.getItem('bb_session');
+  if(saved){
+    try{
+      const{username,password}=JSON.parse(saved);
+      await doLoginWith(username,password,true);
+    }catch{localStorage.removeItem('bb_session');}
+  }
+});
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function switchAuthTab(t){
+  document.getElementById('atab-login').classList.toggle('active',t==='login');
+  document.getElementById('atab-signup').classList.toggle('active',t==='signup');
+  document.getElementById('auth-login').style.display=t==='login'?'block':'none';
+  document.getElementById('auth-signup').style.display=t==='signup'?'block':'none';
+}
+
+async function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  err.style.display='none';
+  if(!u||!p){err.textContent='Fill in both fields!';err.style.display='block';return;}
+  document.getElementById('login-lbl').textContent='LOGGING IN...';
+  const ok=await doLoginWith(u,p,false);
+  document.getElementById('login-lbl').textContent='LOGIN 🚀';
+  if(!ok){err.textContent='Wrong username or password!';err.style.display='block';}
+}
+
+async function doLoginWith(username,password,silent){
+  const{data,error}=await sb.from('profiles').select('*').eq('username',username).eq('password',password).single();
+  if(error||!data){return false;}
+  ME=data;
+  localStorage.setItem('bb_session',JSON.stringify({username,password}));
+  enterApp();
+  return true;
+}
+
+async function doSignup(){
+  const u=document.getElementById('signup-user').value.trim();
+  const p=document.getElementById('signup-pass').value;
+  const err=document.getElementById('signup-err');
+  const suc=document.getElementById('signup-suc');
+  err.style.display='none'; suc.style.display='none';
+  if(!u||!p){err.textContent='Fill in both fields!';err.style.display='block';return;}
+  if(u.length<2){err.textContent='Username must be 2+ characters!';err.style.display='block';return;}
+  if(p.length<4){err.textContent='Password must be 4+ characters!';err.style.display='block';return;}
+  if(!/^[a-zA-Z0-9_]+$/.test(u)){err.textContent='Username: letters, numbers, underscores only!';err.style.display='block';return;}
+  document.getElementById('signup-lbl').textContent='CREATING...';
+  // Check if username taken
+  const{data:existing}=await sb.from('profiles').select('id').eq('username',u).maybeSingle();
+  if(existing){document.getElementById('signup-lbl').textContent='CREATE ACCOUNT 🧠';err.textContent='Username already taken!';err.style.display='block';return;}
+  // Create profile
+  const{data,error}=await sb.from('profiles').insert({username:u,password:p,bio:'',pfp_emoji:'🧠',pfp_color:'#ffffff',pfp_url:''}).select().single();
+  document.getElementById('signup-lbl').textContent='CREATE ACCOUNT 🧠';
+  if(error){err.textContent='Error: '+error.message;err.style.display='block';return;}
+  ME=data;
+  localStorage.setItem('bb_session',JSON.stringify({username:u,password:p}));
+  suc.textContent='Account created! Loading...';
+  suc.style.display='block';
+  setTimeout(()=>enterApp(),800);
+}
+
+function enterApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  updateHdrPfp();
+  renderCollection();
+  loadTrades();
+  subscribeToTrades();
+  subscribeToAllMyDMs();
+  renderMyProfile();
+}
+
+function updateHdrPfp(){
+  if(!ME)return;
+  const btn=document.getElementById('hdr-pfp');
+  if(ME.pfp_url){
+    btn.style.cssText=`width:34px;height:34px;border-radius:50%;background-image:url(${ME.pfp_url});background-size:cover;background-position:center;border:none;cursor:pointer;margin-left:auto;flex-shrink:0;font-size:0;`;
+  } else {
+    btn.style.cssText=`width:34px;height:34px;border-radius:50%;background:${ME.pfp_color||'#fff'};color:${isLight(ME.pfp_color||'#fff')?'#000':'#fff'};border:none;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0;`;
+    btn.textContent=ME.pfp_emoji||'🧠';
+  }
+}
+
+// ── PFP UPLOAD ────────────────────────────────────────────────────────────────
+const NSFW_WORDS=['nude','naked','nsfw','porn','sex','xxx','adult','explicit','onlyfans','lewd','hentai','nudes','boob','dick','cock','pussy','vagina','penis'];
+
+function handlePfpUpload(input){
+  const errEl=document.getElementById('pfp-err');
+  errEl.style.display='none'; pendingPfpDataUrl=null;
+  const file=input.files[0]; if(!file) return;
+  if(file.size>2*1024*1024){errEl.textContent='Image too big! Max 2MB.';errEl.style.display='block';input.value='';return;}
+  const fname=file.name.toLowerCase();
+  if(NSFW_WORDS.some(w=>fname.includes(w))){errEl.textContent='❌ No NSFW content allowed!';errEl.style.display='block';input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    pendingPfpDataUrl=e.target.result;
+    const prev=document.getElementById('pfp-preview');
+    prev.innerHTML=`<img src="${pendingPfpDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function doLogout(){
+  if(!confirm('Log out?'))return;
+  localStorage.removeItem('bb_session');
+  location.reload();
+}
+
+// ── TRADES ────────────────────────────────────────────────────────────────────
+async function loadTrades(){
+  const{data,error}=await sb.from('trades').select('*').order('created_at',{ascending:false});
+  if(error){showToast('Error: '+error.message,true);return;}
+  allTrades=data||[]; applyFilters();
+}
+
+let marketNotifs=0;
+function subscribeToTrades(){
+  sb.channel('trades-rt'+Date.now())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'trades'},p=>{
+      allTrades.unshift(p.new); applyFilters();
+      if(p.new.user_name!==ME.username){
+        if(currentPage==='market'){
+          // Already on market, just show a quick toast that auto-dismisses
+          showToast('🔥 '+p.new.user_name+' posted a trade!');
+        } else {
+          // Off market — show badge + toast
+          marketNotifs++;
+          const mb=document.getElementById('market-badge');
+          mb.textContent=marketNotifs>9?'9+':marketNotifs;
+          mb.style.display='flex';
+          showToast('🔥 '+p.new.user_name+' posted a trade!');
+        }
+      }
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'trades'},p=>{
+      allTrades=allTrades.filter(t=>t.id!==p.old.id); applyFilters();
+    }).subscribe();
+}
+
+function applyFilters(){
+  let f=[...allTrades];
+  if(activeFilter!=='all') f=f.filter(t=>t.type===activeFilter);
+  if(tradeSearch.trim()){
+    const q=tradeSearch.toLowerCase();
+    f=f.filter(t=>(t.offering||[]).some(c=>c.toLowerCase().includes(q))||(t.wanting||[]).some(c=>c.toLowerCase().includes(q))||(t.user_name||'').toLowerCase().includes(q)||(t.description||'').toLowerCase().includes(q));
+  }
+  if(sortOrder==='old') f.reverse();
+  renderTrades(f);
+}
+function searchTrades(v){tradeSearch=v;applyFilters();}
+function filterTrades(v){activeFilter=v;applyFilters();}
+function sortTrades(v){sortOrder=v;applyFilters();}
+
+function chipHTML(n){
+  return`<div class="chip">
+    <img src="${brImg(n)}" class="char-img-sm" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+    <div class="cav" style="display:none;width:20px;height:20px;border-radius:50%;background:#fff;color:#000;align-items:center;justify-content:center;font-size:.4rem;font-weight:900;flex-shrink:0;">${gi(n)}</div>
+    ${esc(n)}
+  </div>`;
+}
+function mutationBadgeHTML(id){
+  const m=MUTATIONS.find(x=>x.id===id);
+  if(!m||m.id==='none') return '';
+  const bg=m.gradient?m.gradient:m.color+'33';
+  const dotBg=m.gradient?m.gradient:`background:${m.color}`;
+  return `<span class="trait-badge" style="background:${bg};color:#fff;border:1px solid ${m.border}99;"><span class="mut-dot" style="${m.gradient?'background:'+m.gradient:'background:'+m.color};border:1px solid ${m.border};"></span>${m.name}<span class="trait-mult">${m.mult}</span></span>`;
+}
+function traitBadgesHTML(traits){
+  if(!traits||!traits.length) return '';
+  return traits.map(id=>{
+    const t=TRAITS.find(x=>x.id===id);
+    if(!t) return '';
+    return `<span class="trait-badge" style="background:${t.color}22;color:#fff;border:1px solid ${t.border}99;"><span class="mut-dot" style="background:${t.color};border:1px solid ${t.border};"></span>${t.name}<span class="trait-mult">${t.mult}</span></span>`;
+  }).join('');
+}
+
+function renderTrades(list){
+  const el=document.getElementById('trade-list');
+  document.getElementById('tcount').textContent=(list||[]).length+' listings';
+  if(!list||!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">🕳️</div><div class="et">NO TRADES</div><div class="es">${tradeSearch?'Try a different search':'Be the first to post!'}</div></div>`;return;}
+  el.innerHTML='';
+  list.forEach(t=>{
+    const off=Array.isArray(t.offering)?t.offering:[];
+    const wan=Array.isArray(t.wanting)?t.wanting:[];
+    const isMine=t.user_name===ME.username;
+    const lbl=t.type==='offer'?'OFFERING':t.type==='want'?'WANTING':'SWAP';
+    const pfpBg=t.pfp_color||'#fff';
+    const d=document.createElement('div'); d.className='tcard';
+    d.innerHTML=`
+      <div class="tcard-head">
+        <div class="tuser" onclick="viewProfile('${esc(t.user_name)}')">
+          ${t.pfp_url?`<img src="${t.pfp_url}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.outerHTML='<div class=tav style=background:${t.pfp_color||'#fff'};color:${isLight(t.pfp_color||'#fff')?'#000':'#fff'}>${t.pfp_emoji||gi(t.user_name||'')}</div>'">`:`<div class="tav" style="background:${t.pfp_color||'#fff'};color:${isLight(t.pfp_color||'#fff')?'#000':'#fff'}">${t.pfp_emoji||gi(t.user_name||'')}</div>`}
+          <div class="tuname">${esc(t.user_name||'?')}${crownTag(t.user_name||'')}${isMine?' <span style="color:#333;font-size:.6rem;">(YOU)</span>':''}</div>
+        </div>
+        <span class="tbadge">${lbl}</span>
+      </div>
+      <div class="tcard-body">
+        <div class="tlabel">${t.type==='want'?'Looking For':'Has / Offering'}</div>
+        <div class="chips">${off.length?off.map(chipHTML).join(''):'<span style="color:#1a1a1a;font-size:.7rem;">None listed</span>'}</div>
+        ${(t.mutation&&t.mutation!=='none')?`<div style="margin-bottom:4px;">${mutationBadgeHTML(t.mutation)}</div>`:''}
+        ${(t.traits&&t.traits.length)?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px;">${traitBadgesHTML(t.traits)}</div>`:''}
+        ${t.income?`<div style="font-size:.72rem;color:#aaa;margin-bottom:5px;">💰 <span style="color:#fff;font-weight:800;">${esc(t.income)}</span>/s</div>`:''}
+        ${wan.length?`<div class="tlabel" style="margin-top:4px;">Wants In Return</div><div class="chips">${wan.map(chipHTML).join('')}</div>`:''}
+        ${(t.want_mutation&&t.want_mutation!==''&&t.want_mutation!=='none')?`<div style="margin-top:3px;font-size:.68rem;color:#555;">Wants mutation: ${mutationBadgeHTML(t.want_mutation)}</div>`:''}
+        ${(t.want_traits&&t.want_traits.length)?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">${traitBadgesHTML(t.want_traits)}</div>`:''}
+        ${t.description?`<div class="tdesc">${esc(t.description)}</div>`:''}
+      </div>
+      <div class="tcard-foot">
+        <span class="ttime">${timeAgo(t.created_at)}</span>
+        <div class="tactions">
+          ${!isMine?`<button class="bxs" onclick="openPrivateDM('${esc(t.user_name)}')">💬 DM</button>`:''}
+          ${isMine?`<button class="bxs bxs-del" onclick="deleteTrade('${t.id}')">🗑</button>`:''}
+        </div>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+async function deleteTrade(id){
+  if(!confirm('Delete?'))return;
+  await sb.from('trades').delete().eq('id',id).eq('user_name',ME.username);
+  showToast('Deleted.');
+}
+
+async function submitTrade(){
+  const type=document.getElementById('post-type').value;
+  const description=document.getElementById('post-desc').value.trim();
+  const incomeNum=document.getElementById('post-income-num').value.trim();
+  const incomeUnit=document.getElementById('post-income-unit').value;
+  const income=incomeNum?(incomeNum+(incomeUnit==='$'?'':incomeUnit)+'/s'):'';
+  const offering=[...offerSel], wanting=[...wantSel];
+  const offerTraits=getDropdownSelections('offer-traits-dd');
+  const wantTraits=getDropdownSelections('want-traits-dd');
+  const offerMutation=document.getElementById('offer-mutation-dd')?.value||'none';
+  const wantMutation=document.getElementById('want-mutation-dd')?.value||'';
+  if(!offering.length){showToast('Pick at least 1 character!');return;}
+  const btn=document.getElementById('submit-btn');
+  btn.textContent='POSTING...'; btn.disabled=true;
+  const{error}=await sb.from('trades').insert({
+    user_name:ME.username, pfp_emoji:ME.pfp_emoji||'🧠',
+    pfp_color:ME.pfp_color||'#fff', pfp_url:ME.pfp_url||'',
+    type, offering, wanting, description, income,
+    traits: offerTraits, mutation: offerMutation,
+    want_traits: wantTraits, want_mutation: wantMutation
+  });
+  btn.textContent='POST 🚀'; btn.disabled=false;
+  if(error){showToast('Error: '+error.message,true);return;}
+  cm('post-modal'); selTrade.clear();
+  document.getElementById('post-desc').value='';
+  document.getElementById('post-income-num').value='';
+  showToast('🔥 Trade posted!');
+}
+
+// ── PROFILE ───────────────────────────────────────────────────────────────────
+async function renderMyProfile(){
+  if(!ME)return;
+  const{data:vouches}=await sb.from('vouches').select('*').eq('to_user',ME.username).order('created_at',{ascending:false});
+  const{count:tc}=await sb.from('trades').select('id',{count:'exact',head:true}).eq('user_name',ME.username);
+  const el=document.getElementById('profile-content');
+  const pfpBg=ME.pfp_color||'#fff';
+  el.innerHTML=`
+    <div class="profile-banner" style="background:linear-gradient(135deg,${ME.pfp_color||'#fff'}33,#000);">
+      <div class="profile-pfp-wrap">
+        <div class="profile-pfp" style="${ME.pfp_url?`background-image:url(${ME.pfp_url});background-size:cover;background-position:center;font-size:0`:`background:${ME.pfp_color||'#fff'};color:${isLight(ME.pfp_color||'#fff')?'#000':'#fff'}`};" onclick="openEditProfile()">${ME.pfp_url?'':ME.pfp_emoji||'🧠'}</div>
+      </div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-uname">${esc(ME.username)}${crownTag(ME.username)}</div>
+      <div class="profile-bio">${ME.bio?esc(ME.bio):'<span style="color:#222;">No bio yet — tap edit to add one</span>'}</div>
+      <div class="pstats">
+        <div class="pstat"><div class="n">${tc||0}</div><div class="l">TRADES</div></div>
+        <div class="pstat"><div class="n">${(vouches||[]).length}</div><div class="l">VOUCHES</div></div>
+      </div>
+    </div>
+    <div class="profile-actions">
+      <button class="btn btn-w" style="font-size:.75rem;padding:7px 13px;" onclick="openEditProfile()">✏️ EDIT PROFILE</button>
+      <button class="btn btn-red" style="font-size:.75rem;padding:7px 13px;" onclick="doLogout()">LOGOUT</button>
+    </div>
+    <div class="vouches-sec">
+      <div class="v-title">✅ VOUCHES (${(vouches||[]).length})</div>
+      ${(vouches||[]).length?vouches.map(v=>`
+        <div class="vouch-card">
+          <div class="vouch-from">
+            <div class="v-av">${gi(v.from_user||'?')}</div>
+            <div class="v-name">${esc(v.from_user||'?')}${crownTag(v.from_user||'?')}</div>
+          </div>
+          ${v.message?`<div class="v-msg">${esc(v.message)}</div>`:''}
+          <div class="v-time">${timeAgo(v.created_at)}</div>
+        </div>`).join(''):'<div style="color:#1a1a1a;font-size:.8rem;">No vouches yet — start trading!</div>'}
+    </div>`;
+}
+
+async function viewProfile(username){
+  if(username===ME.username){goPage('profile');return;}
+  vpTargetUsername=username;
+  document.getElementById('vp-title').innerHTML=username.toUpperCase()+(username===OWNER_NAME?' 👑':'');
+  document.getElementById('vp-body').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  document.getElementById('vp-foot').style.display='none';
+  document.getElementById('vp-modal').classList.add('open');
+  const{data:profile}=await sb.from('profiles').select('*').eq('username',username).single();
+  const{data:vouches}=await sb.from('vouches').select('*').eq('to_user',username).order('created_at',{ascending:false});
+  const{count:tc}=await sb.from('trades').select('id',{count:'exact',head:true}).eq('user_name',username);
+  const alreadyVouched=(vouches||[]).some(v=>v.from_user===ME.username);
+  const pfpBg=profile?.pfp_color||'#fff';
+  document.getElementById('vp-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      ${profile?.pfp_url?`<img src="${profile.pfp_url}" style="width:54px;height:54px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:54px;height:54px;border-radius:50%;background:${profile?.pfp_color||'#fff'};color:${isLight(profile?.pfp_color||'#fff')?'#000':'#fff'};display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">${profile?.pfp_emoji||'🧠'}</div>`}
+      <div>
+        <div style="font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:2px;">${esc(username)}${crownTag(username)}</div>
+        ${ownerBadgeHTML(username)}
+        <div style="font-size:.78rem;color:#333;margin-top:3px;">${profile?.bio?esc(profile.bio):'No bio'}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #111;">
+      <div class="pstat"><div class="n">${tc||0}</div><div class="l">TRADES</div></div>
+      <div class="pstat"><div class="n">${(vouches||[]).length}</div><div class="l">VOUCHES</div></div>
+    </div>
+    <div class="v-title">✅ VOUCHES</div>
+    ${(vouches||[]).length?vouches.map(v=>`
+      <div class="vouch-card">
+        <div class="vouch-from"><div class="v-av">${gi(v.from_user||'?')}</div><div class="v-name">${esc(v.from_user||'?')}</div></div>
+        ${v.message?`<div class="v-msg">${esc(v.message)}</div>`:''}
+        <div class="v-time">${timeAgo(v.created_at)}</div>
+      </div>`).join(''):'<div style="color:#1a1a1a;font-size:.8rem;">No vouches yet</div>'}`;
+  const foot=document.getElementById('vp-foot');
+  foot.style.display='flex';
+  document.getElementById('vp-dm-btn').onclick=()=>{cm('vp-modal');openPrivateDM(username);};
+  const vb=document.getElementById('vp-vouch-btn');
+  if(alreadyVouched){vb.textContent='✅ VOUCHED';vb.disabled=true;vb.style.opacity='.4';}
+  else{vb.textContent='✅ VOUCH';vb.disabled=false;vb.style.opacity='1';vb.onclick=()=>openVouchModal(username);}
+}
+
+function openVouchModal(username){
+  cm('vp-modal');
+  vouchTargetUsername=username;
+  document.getElementById('vouch-for').textContent=username;
+  document.getElementById('vouch-msg').value='';
+  document.getElementById('vouch-modal').classList.add('open');
+}
+
+async function submitVouch(){
+  const msg=document.getElementById('vouch-msg').value.trim();
+  const{error}=await sb.from('vouches').insert({from_user:ME.username,to_user:vouchTargetUsername,message:msg});
+  if(error){showToast(error.message.includes('unique')?'Already vouched!':'Error: '+error.message,true);return;}
+  cm('vouch-modal');
+  showToast('✅ Vouch added!','ok');
+}
+
+// ── EDIT PROFILE ──────────────────────────────────────────────────────────────
+function openEditProfile(){
+  if(!ME)return;
+  pendingPfpDataUrl=null;
+  document.getElementById('edit-bio').value=ME.bio||'';
+  document.getElementById('pfp-err').style.display='none';
+  document.getElementById('pfp-file').value='';
+  // Show current pfp in preview
+  const prev=document.getElementById('pfp-preview');
+  if(ME.pfp_url){
+    prev.innerHTML=`<img src="${ME.pfp_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  } else {
+    prev.style.background=ME.pfp_color||'#fff';
+    prev.style.color=isLight(ME.pfp_color||'#fff')?'#000':'#fff';
+    prev.textContent=ME.pfp_emoji||'🧠';
+    prev.style.display='flex';
+    prev.style.alignItems='center';
+    prev.style.justifyContent='center';
+    prev.style.fontSize='1.6rem';
+  }
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+async function saveProfile(){
+  const bio=document.getElementById('edit-bio').value.trim();
+  const btn=document.getElementById('save-profile-btn');
+  btn.textContent='SAVING...'; btn.disabled=true;
+  const updates={bio};
+  if(pendingPfpDataUrl) updates.pfp_url=pendingPfpDataUrl;
+  const{error}=await sb.from('profiles').update(updates).eq('username',ME.username);
+  btn.textContent='SAVE ✓'; btn.disabled=false;
+  if(error){showToast('Error: '+error.message,true);return;}
+  ME={...ME,...updates};
+  cm('edit-modal'); updateHdrPfp(); renderMyProfile();
+  showToast('Profile saved! ✓','ok');
+}
+
+// ── CHAT ──────────────────────────────────────────────────────────────────────
+function switchChatTab(t){
+  chatTab=t;
+  document.getElementById('tab-global').classList.toggle('active',t==='global');
+  document.getElementById('tab-dms').classList.toggle('active',t==='dms');
+  document.getElementById('chat-global-tab').style.display=t==='global'?'block':'none';
+  document.getElementById('chat-dms-tab').style.display=t==='dms'?'block':'none';
+  if(t==='dms') renderDMList();
+}
+
+async function openChat(room,displayName,avText){
+  currentRoom=room;
+  const av=document.getElementById('chat-av');
+  av.textContent=avText; av.style.background='#fff'; av.style.color='#000';
+  if(avText!=='🌍'&&dmConvos[room]){av.style.background=dmConvos[room].color||'#fff';av.style.color=isLight(dmConvos[room].color||'#fff')?'#000':'#fff';}
+  document.getElementById('chat-nm').textContent=displayName.toUpperCase();
+  document.getElementById('chat-st').textContent=room==='global'?'● Everyone can see this':'● Private';
+  document.getElementById('chat-view').classList.add('open');
+  await loadMessages(room);
+  subscribeToRoom(room);
+  if(room==='global'){globalNotifs=0;}
+  else{if(dmConvos[room])dmConvos[room].unread=0;updateDMNotifCount();renderDMList();}
+  updateBadges();
+}
+
+function openPrivateDM(otherUsername){
+  const room=dmRoom(ME.username,otherUsername);
+  if(!dmConvos[room]) dmConvos[room]={otherUser:otherUsername,lastMsg:'',lastTime:'',unread:0,emoji:'🧠',color:'#fff'};
+  goPage('chat'); switchChatTab('dms');
+  setTimeout(()=>openChat(room,otherUsername,dmConvos[room].emoji||'🧠'),120);
+}
+
+function closeChat(){
+  document.getElementById('chat-view').classList.remove('open');
+  if(activeChatSub){sb.removeChannel(activeChatSub);activeChatSub=null;}
+  currentRoom=null; renderDMList();
+}
+
+async function loadMessages(room){
+  const box=document.getElementById('chat-msgs');
+  box.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  const{data,error}=await sb.from('messages').select('*').eq('room',room).order('created_at',{ascending:true}).limit(100);
+  if(error){box.innerHTML=`<div class="empty-state"><div class="et">ERROR</div></div>`;return;}
+  box.innerHTML='';
+  if(!data.length){box.innerHTML=`<div class="empty-state" style="padding:26px 20px;"><div class="ei">👋</div><div class="et">SAY SOMETHING</div></div>`;return;}
+  data.forEach(m=>appendMsg(m,false));
+  box.scrollTop=box.scrollHeight;
+}
+
+function appendMsg(m,scroll=true){
+  const box=document.getElementById('chat-msgs');
+  const es=box.querySelector('.empty-state,.loading'); if(es)es.remove();
+  const mine=m.user_name===ME.username;
+  const pfpBg=m.pfp_color||'#fff';
+  const d=document.createElement('div'); d.className='msg-row'+(mine?' mine':'');
+  d.innerHTML=`
+    ${m.pfp_url?`<img src="${m.pfp_url}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div class="msg-av" style="background:${m.pfp_color||'#fff'};color:${isLight(m.pfp_color||'#fff')?'#000':'#fff'}">${m.pfp_emoji||gi(m.user_name||'')}</div>`}
+    <div>
+      ${!mine?`<div class="msg-sender">${esc(m.user_name||'')}${crownTag(m.user_name||'')}</div>`:''}
+      <div class="msg-bubble">${esc(m.text)}</div>
+      <div class="msg-time">${ts()}</div>
+    </div>`;
+  box.appendChild(d);
+  if(scroll) box.scrollTop=box.scrollHeight;
+}
+
+function subscribeToRoom(room){
+  if(activeChatSub){sb.removeChannel(activeChatSub);activeChatSub=null;}
+  activeChatSub=sb.channel('room-'+room+'-'+Date.now())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`room=eq.${room}`},p=>{
+      if(p.new.user_name!==ME.username){
+        if(currentRoom===room) appendMsg(p.new);
+        if(dmConvos[room]){dmConvos[room].lastMsg=p.new.text;dmConvos[room].lastTime=ts();if(currentRoom!==room)dmConvos[room].unread=(dmConvos[room].unread||0)+1;renderDMList();updateDMNotifCount();}
+      }
+    }).subscribe();
+}
+
+function subscribeToAllMyDMs(){
+  sb.channel('all-msgs-'+Date.now())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>{
+      const r=p.new.room; if(p.new.user_name===ME.username) return;
+      if(r==='global'){if(currentPage!=='chat'){globalNotifs++;updateBadges();}}
+      else if(r.includes(ME.username)){
+        const parts=r.replace('dm__','').split('__');
+        const other=parts.find(u=>u!==ME.username)||'Unknown';
+        if(!dmConvos[r]) dmConvos[r]={otherUser:other,lastMsg:p.new.text,lastTime:ts(),unread:1,emoji:p.new.pfp_emoji||'🧠',color:p.new.pfp_color||'#fff'};
+        else{dmConvos[r].lastMsg=p.new.text;dmConvos[r].lastTime=ts();if(currentRoom!==r)dmConvos[r].unread=(dmConvos[r].unread||0)+1;}
+        if(currentPage!=='chat'){updateDMNotifCount();updateBadges();}
+        renderDMList();
+        if(currentPage!=='chat') showToast('💬 DM from '+p.new.user_name);
+      }
+    }).subscribe();
+}
+
+function renderDMList(){
+  const list=document.getElementById('dm-list');
+  const convos=Object.entries(dmConvos);
+  if(!convos.length){list.innerHTML=`<div style="text-align:center;padding:28px;color:#1a1a1a;font-size:.8rem;">No DMs yet — hit DM on a trade post!</div>`;return;}
+  list.innerHTML='';
+  convos.forEach(([room,c])=>{
+    const d=document.createElement('div'); d.className='dm-li'+(c.unread?' unread':'');
+    d.onclick=()=>openChat(room,c.otherUser,c.emoji||'🧠');
+    d.innerHTML=`
+      <div class="dli-av" style="background:${c.color||'#fff'};color:${isLight(c.color||'#fff')?'#000':'#fff'}">${c.emoji||'🧠'}</div>
+      <div class="dli-info"><div class="dli-name">${esc(c.otherUser)}${crownTag(c.otherUser)}</div><div class="dli-preview">${esc(c.lastMsg||'Tap to open')}</div></div>
+      <div class="dli-meta">
+        <div class="dli-time">${c.lastTime||''}</div>
+        ${c.unread?`<div class="dli-badge">${c.unread}</div>`:''}
+      </div>`;
+    list.appendChild(d);
+  });
+}
+
+function updateDMNotifCount(){
+  const t=Object.values(dmConvos).reduce((s,c)=>s+(c.unread||0),0);
+  totalDMNotifs=t;
+  document.getElementById('dm-nc').textContent=t>0?`(${t})`:'';
+  updateBadges();
+}
+function updateBadges(){
+  const t=totalDMNotifs+globalNotifs;
+  const b=document.getElementById('chat-badge');
+  if(t>0){b.textContent=t>9?'9+':t;b.style.display='flex';}
+  else{b.style.display='none';b.textContent='';}
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('chat-inp');
+  const text=inp.value.trim(); if(!text||!currentRoom)return;
+  inp.value='';
+  const msgData={user_name:ME.username,pfp_emoji:ME.pfp_emoji||'🧠',pfp_color:ME.pfp_color||'#fff',pfp_url:ME.pfp_url||'',text,room:currentRoom};
+  appendMsg(msgData);
+  await sb.from('messages').insert(msgData);
+}
+
+function openNewDM(){document.getElementById('new-dm-modal').classList.add('open');}
+function startNewDM(){
+  const t=document.getElementById('dm-target').value.trim();
+  if(!t){showToast('Enter a username!');return;}
+  if(t===ME.username){showToast("Can't DM yourself 💀");return;}
+  cm('new-dm-modal'); document.getElementById('dm-target').value='';
+  openPrivateDM(t);
+}
+
+// ── COLLECTION ────────────────────────────────────────────────────────────────
+function renderCollection(filter=''){
+  const g=document.getElementById('col-grid'); g.innerHTML='';
+  BR.filter(n=>n.toLowerCase().includes(filter.toLowerCase())).forEach(name=>{
+    const d=document.createElement('div'); d.className='citem'+(selTrade.has(name)?' sel':'');
+    d.innerHTML=`<img src="${brImg(name)}" class="char-img" style="margin:0 auto 3px;" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="cav2" style="display:none;">${gi(name)}</div><div class="cn">${name}</div><div class="chk">✓</div>`;
+    d.onclick=()=>{selTrade.has(name)?selTrade.delete(name):selTrade.add(name);d.classList.toggle('sel');document.getElementById('col-sub').textContent=selTrade.size+' selected';};
+    g.appendChild(d);
+  });
+  document.getElementById('col-sub').textContent=selTrade.size+' selected';
+}
+function filterCollection(v){renderCollection(v);}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function buildPicker(id,sel,filter=''){
+  const el=document.getElementById(id); el.innerHTML='';
+  BR.filter(n=>n.toLowerCase().includes(filter.toLowerCase())).forEach(name=>{
+    const d=document.createElement('div'); d.className='cpi'+(sel.has(name)?' sel':'');
+    const imgSlug=brImg(name);
+    d.innerHTML=`<img src="${imgSlug}" style="width:30px;height:30px;border-radius:5px;object-fit:cover;margin:0 auto 2px;display:block;background:#111;" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="cpav" style="display:none;">${gi(name)}</div>${name}`;
+    d.onclick=()=>{sel.has(name)?sel.delete(name):sel.add(name);d.classList.toggle('sel');document.getElementById(id==='offer-picker'?'offer-count':'want-count').textContent=sel.size+' selected';};
+    el.appendChild(d);
+  });
+}
+function filterPicker(type,v){if(type==='offer')buildPicker('offer-picker',offerSel,v);else buildPicker('want-picker',wantSel,v);}
+// ── DROPDOWN BUILDERS ────────────────────────────────────────────────────────
+function colorBlock(item){
+  // Returns a unicode block char — we use a colored square approach via option text
+  // Since HTML options can't have colored backgrounds per-option in most browsers,
+  // we prepend a colored emoji-style block using unicode + name
+  if(item.gradient) return '🌈';
+  const r=parseInt(item.color.slice(1,3),16);
+  const g=parseInt(item.color.slice(3,5),16);
+  const b=parseInt(item.color.slice(5,7),16);
+  // Pick a visible unicode block
+  return '■';
+}
+
+function buildMutationDropdown(selectId, includeNone=true){
+  const el=document.getElementById(selectId); if(!el) return;
+  el.innerHTML='';
+  MUTATIONS.forEach(m=>{
+    if(!includeNone && m.id==='none') return;
+    const opt=document.createElement('option');
+    opt.value=m.id;
+    const icon = m.gradient ? '🌈' : '■';
+    opt.textContent=`${icon} ${m.name}  (${m.mult})`;
+    opt.style.background='#111'; opt.style.color='#fff';
+    opt.dataset.color=m.color;
+    el.appendChild(opt);
+  });
+}
+
+function buildTraitsDropdown(selectId){
+  const el=document.getElementById(selectId); if(!el) return;
+  el.innerHTML='';
+  const blank=document.createElement('option');
+  blank.value=''; blank.textContent='— None —';
+  blank.style.background='#111'; blank.style.color='#444';
+  el.appendChild(blank);
+  TRAITS.forEach(t=>{
+    const opt=document.createElement('option');
+    opt.value=t.id;
+    opt.textContent=`■ ${t.name}  (${t.mult})`;
+    opt.style.background='#111'; opt.style.color='#fff';
+    opt.dataset.color=t.color;
+    el.appendChild(opt);
+  });
+}
+
+function getDropdownSelections(selectId){
+  const el=document.getElementById(selectId); if(!el) return [];
+  return Array.from(el.selectedOptions).map(o=>o.value).filter(v=>v!=='');
+}
+
+// buildTraitPicker removed — using dropdowns now
+
+function openPostModal(){
+  offerSel=new Set(selTrade); wantSel=new Set();
+  document.getElementById('offer-search').value='';
+  document.getElementById('want-search').value='';
+  document.getElementById('offer-count').textContent=offerSel.size+' selected';
+  document.getElementById('want-count').textContent='0 selected';
+  document.getElementById('post-income-num').value='';
+  document.getElementById('post-income-unit').value='M';
+  buildPicker('offer-picker',offerSel,'');
+  buildPicker('want-picker',wantSel,'');
+  buildMutationDropdown('offer-mutation-dd', true);
+  buildMutationDropdown('want-mutation-dd', true);
+  buildTraitsDropdown('offer-traits-dd');
+  buildTraitsDropdown('want-traits-dd');
+  document.getElementById('post-modal').classList.add('open');
+}
+function openPostModalWithSelected(){if(!selTrade.size){showToast('Select characters first!');return;}openPostModal();}
+function cm(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function goPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('bnav-'+p).classList.add('active');
+  currentPage=p;
+  if(p==='collection') renderCollection();
+  if(p==='profile') renderMyProfile();
+  if(p==='market'){
+    // Clear market badge
+    marketNotifs=0;
+    const mb=document.getElementById('market-badge');
+    mb.style.display='none'; mb.textContent='';
+  }
+  if(p==='chat'){
+    // Clear ALL chat notifications
+    globalNotifs=0;
+    Object.values(dmConvos).forEach(c=>{ c.unread=0; });
+    totalDMNotifs=0;
+    document.getElementById('dm-nc').textContent='';
+    updateBadges();
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg,type=false){
+  const t=document.getElementById('toast');
+  // Clear any existing timer and remove show class first
+  clearTimeout(t._t);
+  t.classList.remove('show');
+  t.textContent=msg;
+  t.className='toast'+(type==='ok'?' ok':type?' err':'');
+  // Small delay so remove+add triggers CSS transition properly
+  requestAnimationFrame(()=>{
+    t.classList.add('show');
+    t._t=setTimeout(()=>t.classList.remove('show'),2800);
+  });
+}
+</script>
+</body>
+</html>
