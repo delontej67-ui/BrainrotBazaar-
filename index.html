@@ -258,7 +258,7 @@ select[multiple] option:checked{background:#333;color:#fff;}
 .lb-count{font-family:'Bangers',cursive;font-size:1.4rem;color:#fff;letter-spacing:1px;text-align:right;}
 .lb-count span{font-size:.6rem;color:#555;display:block;font-family:'Nunito',sans-serif;font-weight:800;}
 /* ADMIN */
-.admin-btn{position:fixed;bottom:86px;right:16px;width:48px;height:48px;border-radius:50%;background:#fff;border:2.5px solid #000;cursor:pointer;font-size:1.15rem;z-index:300;box-shadow:0 2px 16px rgba(255,255,255,.25);display:none;align-items:center;justify-content:center;}
+.admin-header-btn-visible{display:flex !important;}
 
 /* LOADING & TOAST */
 .loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:28px;color:#1a1a1a;font-size:.82rem;}
@@ -314,7 +314,10 @@ select[multiple] option:checked{background:#333;color:#fff;}
 <div id="app" style="display:none;flex-direction:column;height:100%;">
   <div class="header">
     <div class="logo" style="display:flex;align-items:center;gap:8px;"><img src="https://gcdnb.pbrd.co/images/4FHuXGwtaVEP.png?o=1" style="height:36px;width:auto;object-fit:contain;vertical-align:middle;">BRAINROT<span>BAZAAR</span></div>
-    <button class="pfp-btn" id="hdr-pfp" onclick="goPage('profile')"></button>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <button id="admin-header-btn" onclick="openAdminPanel()" style="display:none;background:#fff;color:#000;border:none;border-radius:50%;width:32px;height:32px;font-size:.9rem;cursor:pointer;display:none;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;">📣</button>
+      <button class="pfp-btn" id="hdr-pfp" onclick="goPage('profile')" style="margin-left:0;"></button>
+    </div>
   </div>
   <div class="pages">
 
@@ -404,7 +407,6 @@ select[multiple] option:checked{background:#333;color:#fff;}
     </div>
 
   </div>
-  <button class="admin-btn" id="admin-fab" onclick="document.getElementById('admin-modal').classList.add('open')">📣</button>
   <div style="text-align:center;font-size:.55rem;color:#1a1a1a;letter-spacing:1px;text-transform:uppercase;padding:3px 0;background:#000;border-top:1px solid #0a0a0a;flex-shrink:0;">
     MADE BY Y2K &nbsp;·&nbsp; IDEA BY EYBRQ
   </div>
@@ -535,58 +537,61 @@ select[multiple] option:checked{background:#333;color:#fff;}
 
 <!-- ADMIN PANEL MODAL -->
 <div class="overlay" id="admin-modal">
-  <div class="modal" style="max-height:88vh;overflow:hidden;display:flex;flex-direction:column;">
-    <div class="modal-head" style="background:#000;border-bottom:2px solid #fff;flex-shrink:0;">
-      <span class="modal-title" style="color:#fff;letter-spacing:3px;">📣 ADMIN PANEL</span>
-      <button class="modal-close" onclick="cm('admin-modal')" style="color:#fff;">✕</button>
+  <div class="modal" style="max-height:90vh;display:flex;flex-direction:column;background:#000;border:2px solid #fff;border-radius:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #222;flex-shrink:0;">
+      <span style="font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:3px;color:#fff;">📣 ADMIN PANEL</span>
+      <button type="button" onclick="cm('admin-modal')" style="background:none;border:1px solid #333;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
-    <div class="modal-body" style="overflow-y:auto;flex:1;">
+    <div style="overflow-y:auto;flex:1;padding:14px 16px;">
 
-      <!-- Owner tag -->
-      <div style="border:1px solid #fff;border-radius:10px;padding:10px 12px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
-        <span style="font-size:1.2rem;">👑</span>
+      <div style="background:#111;border:1px solid #fff;border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.1rem;">👑</span>
         <div>
-          <div style="font-size:.72rem;font-weight:900;letter-spacing:1px;color:#fff;">Y2KEXPLOITS — OWNER ACCESS</div>
-          <div style="font-size:.6rem;color:#555;margin-top:1px;">All actions are permanent and logged</div>
+          <div style="font-size:.72rem;font-weight:900;letter-spacing:1px;color:#fff;">Y2KEXPLOITS — OWNER</div>
+          <div style="font-size:.6rem;color:#555;margin-top:1px;">All actions permanent &amp; logged</div>
         </div>
       </div>
 
-      <!-- BAN section -->
-      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:12px;">
-        <div style="font-size:.7rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:8px;text-transform:uppercase;">🔨 Ban User</div>
-        <input class="fsel2" id="admin-ban-user" placeholder="Enter username..." style="margin-bottom:8px;background:#000;border:1px solid #fff;color:#fff;">
+      <!-- BAN -->
+      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:10px;">
+        <div style="font-size:.68rem;font-weight:900;letter-spacing:1px;color:#aaa;margin-bottom:8px;text-transform:uppercase;">🔨 Ban User</div>
+        <input id="admin-ban-user" type="text" placeholder="Username to ban" autocomplete="off"
+          style="width:100%;background:#0d0d0d;border:1px solid #444;border-radius:8px;padding:8px 10px;color:#fff;font-family:'Nunito',sans-serif;font-size:.82rem;outline:none;margin-bottom:8px;box-sizing:border-box;">
         <div style="display:flex;gap:8px;">
-          <button onclick="adminBan(false)" style="flex:1;background:#000;border:2px solid #fff;color:#fff;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;letter-spacing:.5px;">🔨 BAN</button>
-          <button onclick="adminBan(true)" style="flex:1;background:#fff;border:2px solid #fff;color:#000;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;letter-spacing:.5px;">☠️ IP BAN</button>
+          <button type="button" id="btn-ban" style="flex:1;background:#000;border:2px solid #fff;color:#fff;padding:10px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">🔨 BAN</button>
+          <button type="button" id="btn-ipban" style="flex:1;background:#fff;border:2px solid #fff;color:#000;padding:10px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">☠️ IP BAN</button>
         </div>
       </div>
 
-      <!-- UNBAN section -->
-      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:12px;">
-        <div style="font-size:.7rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:8px;text-transform:uppercase;">🔓 Unban User</div>
-        <input class="fsel2" id="admin-unban-user" placeholder="Enter username..." style="margin-bottom:8px;background:#000;border:1px solid #fff;color:#fff;">
-        <button onclick="adminUnban()" style="width:100%;background:#000;border:2px solid #fff;color:#fff;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">✅ UNBAN</button>
+      <!-- UNBAN -->
+      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:10px;">
+        <div style="font-size:.68rem;font-weight:900;letter-spacing:1px;color:#aaa;margin-bottom:8px;text-transform:uppercase;">🔓 Unban User</div>
+        <input id="admin-unban-user" type="text" placeholder="Username to unban" autocomplete="off"
+          style="width:100%;background:#0d0d0d;border:1px solid #444;border-radius:8px;padding:8px 10px;color:#fff;font-family:'Nunito',sans-serif;font-size:.82rem;outline:none;margin-bottom:8px;box-sizing:border-box;">
+        <button type="button" id="btn-unban" style="width:100%;background:#000;border:2px solid #fff;color:#fff;padding:10px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">✅ UNBAN</button>
       </div>
 
-      <!-- DELETE TRADES section -->
-      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:12px;">
-        <div style="font-size:.7rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:8px;text-transform:uppercase;">🗑️ Delete All Trades</div>
-        <input class="fsel2" id="admin-del-trade" placeholder="Enter username..." style="margin-bottom:8px;background:#000;border:1px solid #fff;color:#fff;">
-        <button onclick="adminDeleteTrades()" style="width:100%;background:#000;border:2px solid #fff;color:#fff;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">🗑️ DELETE ALL TRADES</button>
+      <!-- DELETE TRADES -->
+      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:10px;">
+        <div style="font-size:.68rem;font-weight:900;letter-spacing:1px;color:#aaa;margin-bottom:8px;text-transform:uppercase;">🗑️ Delete All Trades</div>
+        <input id="admin-del-trade" type="text" placeholder="Username" autocomplete="off"
+          style="width:100%;background:#0d0d0d;border:1px solid #444;border-radius:8px;padding:8px 10px;color:#fff;font-family:'Nunito',sans-serif;font-size:.82rem;outline:none;margin-bottom:8px;box-sizing:border-box;">
+        <button type="button" id="btn-del-trades" style="width:100%;background:#000;border:2px solid #fff;color:#fff;padding:10px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">🗑️ DELETE ALL TRADES</button>
       </div>
 
-      <!-- WIPE ACCOUNT section -->
-      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:12px;">
-        <div style="font-size:.7rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:8px;text-transform:uppercase;">💣 Wipe Account</div>
-        <input class="fsel2" id="admin-wipe-user" placeholder="Enter username..." style="margin-bottom:8px;background:#000;border:1px solid #fff;color:#fff;">
-        <button onclick="adminWipeAccount()" style="width:100%;background:#fff;border:2px solid #fff;color:#000;padding:9px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">💣 WIPE + BAN ACCOUNT</button>
+      <!-- WIPE -->
+      <div style="border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:10px;">
+        <div style="font-size:.68rem;font-weight:900;letter-spacing:1px;color:#aaa;margin-bottom:8px;text-transform:uppercase;">💣 Wipe Account</div>
+        <input id="admin-wipe-user" type="text" placeholder="Username" autocomplete="off"
+          style="width:100%;background:#0d0d0d;border:1px solid #444;border-radius:8px;padding:8px 10px;color:#fff;font-family:'Nunito',sans-serif;font-size:.82rem;outline:none;margin-bottom:8px;box-sizing:border-box;">
+        <button type="button" id="btn-wipe" style="width:100%;background:#fff;border:2px solid #fff;color:#000;padding:10px;border-radius:10px;font-size:.78rem;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;">💣 WIPE + BAN</button>
       </div>
 
       <!-- LOG -->
-      <div style="border:1px solid #222;border-radius:10px;padding:10px;background:#050505;">
-        <div style="font-size:.62rem;color:#555;font-weight:900;letter-spacing:1px;margin-bottom:6px;text-transform:uppercase;">Action Log</div>
-        <div id="admin-log" style="font-size:.62rem;color:#444;max-height:100px;overflow-y:auto;font-family:monospace;line-height:1.6;"></div>
-        <div id="admin-log-empty" style="font-size:.62rem;color:#222;font-style:italic;">No actions yet this session</div>
+      <div style="border:1px solid #1a1a1a;border-radius:10px;padding:10px;background:#050505;">
+        <div style="font-size:.6rem;color:#444;font-weight:900;letter-spacing:1px;margin-bottom:5px;text-transform:uppercase;">— Action Log —</div>
+        <div id="admin-log" style="font-size:.62rem;color:#555;max-height:90px;overflow-y:auto;font-family:monospace;line-height:1.7;"></div>
+        <div id="admin-log-empty" style="font-size:.6rem;color:#222;font-style:italic;">No actions yet</div>
       </div>
 
     </div>
@@ -927,7 +932,7 @@ async function doLoginWith(username,password,silent){
   localStorage.setItem('bb_session',JSON.stringify({username,password}));
   enterApp();
   // Show admin fab if owner
-  if(username===OWNER_NAME){ const fab=document.getElementById('admin-fab'); if(fab) fab.style.display='flex'; }
+  if(username===OWNER_NAME){ const ab=document.getElementById('admin-header-btn'); if(ab){ab.style.display='flex';} }
   return true;
 }
 
@@ -965,6 +970,7 @@ function enterApp(){
   subscribeToTrades();
   subscribeToAllMyDMs();
   renderMyProfile();
+  initAdminPanel();
 }
 
 function updateHdrPfp(){
@@ -1687,13 +1693,31 @@ async function checkVouchBot(fromUser, toUser) {
 }
 
 // ── ADMIN FUNCTIONS ───────────────────────────────────────────────────────────
+function openAdminPanel(){
+  if(!ME || ME.username !== OWNER_NAME){ showToast('Owner only!',true); return; }
+  document.getElementById('admin-modal').classList.add('open');
+}
+
+// Wire admin buttons via JS to avoid inline onclick issues on mobile
+function initAdminPanel(){
+  const safe = (id, fn) => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('click', fn);
+  };
+  safe('btn-ban',       () => adminBan(false));
+  safe('btn-ipban',     () => adminBan(true));
+  safe('btn-unban',     () => adminUnban());
+  safe('btn-del-trades',() => adminDeleteTrades());
+  safe('btn-wipe',      () => adminWipeAccount());
+}
+
 function adminLog(msg) {
   const el = document.getElementById('admin-log');
   if(!el) return;
   const empty = document.getElementById('admin-log-empty');
   if(empty) empty.style.display = 'none';
   const line = document.createElement('div');
-  line.style.cssText = 'border-bottom:1px solid #111;padding-bottom:3px;margin-bottom:3px;color:#aaa;';
+  line.style.cssText = 'border-bottom:1px solid #111;padding-bottom:2px;margin-bottom:2px;color:#888;';
   line.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
   el.prepend(line);
 }
