@@ -921,12 +921,20 @@ let vpTargetUsername=null;
 // ── INIT ──────────────────────────────────────────────────────────────────────
 window.addEventListener('load',async()=>{
   sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-  // Auto-login from localStorage
   const saved=localStorage.getItem('bb_session');
   if(saved){
     try{
-      const{username,password}=JSON.parse(saved);
-      await doLoginWith(username,password,true);
+      const{username,password,profile}=JSON.parse(saved);
+      // If we have a cached profile, enter app INSTANTLY then verify in background
+      if(profile && profile.username===username){
+        ME=profile;
+        enterApp();
+        if(username===OWNER_NAME){const ab=document.getElementById('admin-header-btn');if(ab)ab.style.display='flex';}
+        // Quietly verify + refresh profile in background
+        doLoginWith(username,password,true,true);
+      } else {
+        await doLoginWith(username,password,true,false);
+      }
     }catch{localStorage.removeItem('bb_session');}
   }
 });
@@ -946,27 +954,48 @@ async function doLogin(){
   err.style.display='none';
   if(!u||!p){err.textContent='Fill in both fields!';err.style.display='block';return;}
   document.getElementById('login-lbl').textContent='LOGGING IN...';
-  const ok=await doLoginWith(u,p,false);
+  const ok=await doLoginWith(u,p,false,false);
   document.getElementById('login-lbl').textContent='LOGIN 🚀';
   if(!ok){err.textContent='Wrong username or password!';err.style.display='block';}
 }
 
-async function doLoginWith(username,password,silent){
-  // Check if banned first
-  const banMsg = await checkBanned(username);
-  if(banMsg){
-    if(!silent){ const err=document.getElementById('login-err'); err.textContent=banMsg; err.style.display='block'; }
-    localStorage.removeItem('bb_session');
+async function doLoginWith(username,password,silent,backgroundRefresh){
+  try{
+    // Run ban check + profile fetch in PARALLEL — cuts wait time in half
+    const [banResult, profileResult] = await Promise.all([
+      backgroundRefresh ? Promise.resolve(null) : sb.from('banned_users').select('ban_type,reason').eq('username',username).maybeSingle(),
+      sb.from('profiles').select('*').eq('username',username).eq('password',password).single()
+    ]);
+
+    // Check ban
+    if(!backgroundRefresh && banResult?.data){
+      const msg = banResult.data.ban_type==='ip_ban'
+        ? '☠️ You are IP banned from BrainrotBazaar.'
+        : '🔨 Your account has been banned.';
+      if(!silent){const err=document.getElementById('login-err');err.textContent=msg;err.style.display='block';}
+      localStorage.removeItem('bb_session');
+      return false;
+    }
+
+    const {data,error}=profileResult;
+    if(error||!data) return false;
+
+    ME=data;
+    // Cache profile data for instant next load
+    localStorage.setItem('bb_session',JSON.stringify({username,password,profile:data}));
+
+    if(backgroundRefresh){
+      // Just refresh profile data silently — already in app
+      updateHdrPfp();
+      return true;
+    }
+
+    enterApp();
+    if(username===OWNER_NAME){const ab=document.getElementById('admin-header-btn');if(ab)ab.style.display='flex';}
+    return true;
+  }catch(e){
     return false;
   }
-  const{data,error}=await sb.from('profiles').select('*').eq('username',username).eq('password',password).single();
-  if(error||!data){return false;}
-  ME=data;
-  localStorage.setItem('bb_session',JSON.stringify({username,password}));
-  enterApp();
-  // Show admin fab if owner
-  if(username===OWNER_NAME){ const ab=document.getElementById('admin-header-btn'); if(ab){ab.style.display='flex';} }
-  return true;
 }
 
 async function doSignup(){
