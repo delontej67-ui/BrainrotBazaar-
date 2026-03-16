@@ -9,6 +9,7 @@
 <style>
 :root{--bg:#000;--bg2:#0a0a0a;--panel:#111;--card:#0d0d0d;--text:#fff;--muted:#555;--border:#222;--r:14px;--hh:56px;--bh:60px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+button,a,[onclick]{touch-action:manipulation;cursor:pointer;}
 html,body{height:100%;overflow:hidden;}
 body{font-family:'Nunito',sans-serif;background:#000;color:#fff;display:flex;flex-direction:column;}
 @property --angle{syntax:'<angle>';initial-value:0deg;inherits:false;}
@@ -1824,17 +1825,7 @@ function initAdminPanel(){
   // Wire action buttons — use touchend for instant mobile response
   const wire = (id, fn) => {
     const el = document.getElementById(id);
-    if(!el) return;
-    // Use both touchend and click for maximum mobile compatibility
-    let tapped = false;
-    el.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      if(tapped) return;
-      tapped = true;
-      setTimeout(() => tapped = false, 500);
-      fn();
-    }, {passive:false});
-    el.addEventListener('click', fn);
+    if(el) el.addEventListener('click', fn);
   };
 
   wire('btn-ban',        () => adminBan(false));
