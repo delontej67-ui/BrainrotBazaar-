@@ -222,6 +222,15 @@ select[multiple] option:checked{background:var(--surface3);color:#fff;}
 /* LOADING & TOAST */
 .loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:32px;color:var(--text3);font-size:.8rem;}
 .spin{width:14px;height:14px;border:1.5px solid var(--surface3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;}
+.verified-badge{display:inline-flex;align-items:center;gap:3px;background:#1a3a1a;border:1px solid #4ade8033;color:#4ade80;font-size:.58rem;font-weight:900;padding:1px 6px;border-radius:50px;letter-spacing:.5px;}
+.trusted-badge{display:inline-flex;align-items:center;gap:3px;background:#1a2a3a;border:1px solid #60a5fa33;color:#60a5fa;font-size:.58rem;font-weight:900;padding:1px 6px;border-radius:50px;letter-spacing:.5px;}
+.report-btn{background:none;border:none;color:var(--text3);font-size:.68rem;padding:2px 6px;cursor:pointer;font-family:"Nunito",sans-serif;}
+.report-btn:active{color:#ff5555;}
+.online-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block;box-shadow:0 0 4px #4ade80;flex-shrink:0;}
+.calc-item{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;}
+.calc-item-name{flex:1;font-size:.78rem;font-weight:800;}
+.calc-item-val{font-size:.72rem;color:var(--text2);font-weight:700;}
+.calc-item-del{background:none;border:none;color:var(--text3);font-size:.9rem;cursor:pointer;padding:2px;}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border2);border-radius:50px;padding:9px 18px;font-weight:800;font-size:.8rem;color:#fff;transition:transform .28s cubic-bezier(.34,1.4,.64,1),opacity .28s ease;z-index:9999;pointer-events:none;white-space:nowrap;opacity:0;box-shadow:0 8px 32px rgba(0,0,0,.5);}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .toast.err{border-color:#ff555566;color:#ff5555;}
@@ -349,6 +358,52 @@ select[multiple] option:checked{background:var(--surface3);color:#fff;}
       <div id="lb-list" style="padding:0 12px 80px;"></div>
     </div>
 
+    <!-- WFL CALCULATOR -->
+    <div class="page" id="page-calc">
+      <div style="padding:14px 14px 6px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <div style="font-family:'Bangers',cursive;font-size:1.4rem;letter-spacing:3px;">⚖️ TRADE CALC</div>
+        <div style="font-size:.65rem;color:var(--text3);margin-top:2px;">Check if a trade is Win, Fair, or Loss based on $/s income</div>
+      </div>
+      <div style="padding:14px;overflow-y:auto;flex:1;padding-bottom:80px;">
+
+        <!-- MY SIDE -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;">
+          <div style="font-size:.65rem;font-weight:900;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">📤 YOU OFFER</div>
+          <div id="calc-offer-list" style="display:flex;flex-direction:column;gap:6px;min-height:40px;"></div>
+          <button onclick="openCalcPicker('offer')" style="width:100%;margin-top:8px;background:#000;border:1px dashed var(--border2);color:var(--text2);padding:9px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;">+ Add Brainrot</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+            <span style="font-size:.7rem;color:var(--text3);font-weight:800;text-transform:uppercase;letter-spacing:1px;">Total Value</span>
+            <span id="calc-offer-total" style="font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:1px;">$0/s</span>
+          </div>
+        </div>
+
+        <!-- WFL VERDICT -->
+        <div id="calc-verdict" style="text-align:center;padding:16px;margin-bottom:10px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:none;">
+          <div id="calc-verdict-label" style="font-family:'Bangers',cursive;font-size:2rem;letter-spacing:3px;"></div>
+          <div id="calc-verdict-sub" style="font-size:.75rem;color:var(--text2);margin-top:4px;"></div>
+          <div id="calc-verdict-pct" style="font-size:.65rem;color:var(--text3);margin-top:2px;"></div>
+        </div>
+
+        <!-- THEIR SIDE -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;">
+          <div style="font-size:.65rem;font-weight:900;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">📥 YOU RECEIVE</div>
+          <div id="calc-receive-list" style="display:flex;flex-direction:column;gap:6px;min-height:40px;"></div>
+          <button onclick="openCalcPicker('receive')" style="width:100%;margin-top:8px;background:#000;border:1px dashed var(--border2);color:var(--text2);padding:9px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;">+ Add Brainrot</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+            <span style="font-size:.7rem;color:var(--text3);font-weight:800;text-transform:uppercase;letter-spacing:1px;">Total Value</span>
+            <span id="calc-receive-total" style="font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:1px;">$0/s</span>
+          </div>
+        </div>
+
+        <button onclick="resetCalc()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:10px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;">🔄 RESET</button>
+
+        <div style="margin-top:16px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;">
+          <div style="font-size:.62rem;font-weight:900;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">How values work</div>
+          <div style="font-size:.7rem;color:var(--text2);line-height:1.6;">Values are based on base income ($/s) from the game. Mutations and traits multiply these values. A trade is considered:<br><span style="color:#4ade80;">✅ WIN</span> if you gain 10%+ more value<br><span style="color:#fff;">⚖️ FAIR</span> if within 10% either way<br><span style="color:#ff5555;">❌ LOSS</span> if you give 10%+ more value</div>
+        </div>
+      </div>
+    </div>
+
     <!-- COLLECTION -->
     <div class="page" id="page-collection">
       <div class="col-toolbar">
@@ -372,6 +427,7 @@ select[multiple] option:checked{background:var(--surface3);color:#fff;}
     <button class="bnav-btn active" id="bnav-market" onclick="goPage('market')"><span class="ico">🏪</span>MARKET<div class="nb-badge" id="market-badge"></div></button>
     <button class="bnav-btn" id="bnav-chat" onclick="goPage('chat')"><span class="ico">💬</span>CHAT<div class="nb-badge" id="chat-badge"></div></button>
     <button class="bnav-btn" id="bnav-leaderboard" onclick="goPage('leaderboard')"><span class="ico">🏆</span>TOP</button>
+    <button class="bnav-btn" id="bnav-calc" onclick="goPage('calc')"><span class="ico">⚖️</span>CALC</button>
     <button class="bnav-btn" id="bnav-collection" onclick="goPage('collection')"><span class="ico">🎴</span>CARDS</button>
     <button class="bnav-btn" id="bnav-profile" onclick="goPage('profile')"><span class="ico">👤</span>PROFILE</button>
   </div>
@@ -600,6 +656,17 @@ select[multiple] option:checked{background:var(--surface3);color:#fff;}
       <button class="btn btn-g" onclick="cm('vp-modal')">CLOSE</button>
       <button class="btn btn-w" id="vp-dm-btn">💬 DM</button>
       <button class="btn btn-w" id="vp-vouch-btn">✅ VOUCH</button>
+    </div>
+  </div>
+</div>
+
+<!-- CALC PICKER MODAL -->
+<div class="overlay" id="calc-modal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">ADD BRAINROT</span><button class="modal-close" onclick="cm('calc-modal')">✕</button></div>
+    <div class="modal-body">
+      <input class="picker-search" id="calc-search" placeholder="🔍  Search character..." oninput="buildCalcPicker(this.value)">
+      <div class="cpicker" id="calc-picker" style="max-height:280px;"></div>
     </div>
   </div>
 </div>
@@ -973,7 +1040,7 @@ async function doSignup(){
   const{data:existing}=await sb.from('profiles').select('id').eq('username',u).maybeSingle();
   if(existing){document.getElementById('signup-lbl').textContent='CREATE ACCOUNT 🧠';err.textContent='Username already taken!';err.style.display='block';return;}
   // Create profile
-  const{data,error}=await sb.from('profiles').insert({username:u,password:p,bio:'',pfp_emoji:'🧠',pfp_color:'#ffffff',pfp_url:'',banner_url:'',banner_pos:'center'}).select().single();
+  const{data,error}=await sb.from('profiles').insert({username:u,password:p,bio:'',pfp_emoji:'🧠',pfp_color:'#ffffff',pfp_url:'',banner_url:'',banner_pos:'center',last_seen:new Date().toISOString()}).select().single();
   document.getElementById('signup-lbl').textContent='CREATE ACCOUNT 🧠';
   if(error){err.textContent='Error: '+error.message;err.style.display='block';return;}
   ME=data;
@@ -1133,7 +1200,7 @@ function renderTrades(list){
       <div class="tcard-foot">
         <span class="ttime">${timeAgo(t.created_at)}</span>
         <div class="tactions">
-          ${!isMine?`<button class="bxs" onclick="openPrivateDM('${esc(t.user_name)}')">💬 DM</button>`:''}
+          ${!isMine?`<button class="bxs" onclick="openPrivateDM('${esc(t.user_name)}')">💬 DM</button><button class="report-btn" onclick="reportTrade('${t.id}','${esc(t.user_name)}')">⚑</button>`:''}
           ${isMine?`<button class="bxs bxs-del" onclick="deleteTrade('${t.id}')">🗑</button>`:''}
         </div>
       </div>`;
@@ -1607,6 +1674,7 @@ function goPage(p){
   document.getElementById('bnav-'+p).classList.add('active');
   currentPage=p;
   if(p==='collection') renderCollection();
+  if(p==='calc'){updateCalc();buildCalcPicker('');}
   if(p==='profile') renderMyProfile();
   if(p==='market'){
     marketNotifs=0;
@@ -1629,6 +1697,16 @@ function goPage(p){
     document.getElementById('dm-nc').textContent='';
     updateBadges();
   }
+}
+
+// ── REPORT ────────────────────────────────────────────────────────────────────
+async function reportTrade(id, username){
+  if(!confirm('Report this trade by '+username+'?')) return;
+  await sb.from('admin_logs').insert({
+    action:'report_trade', target:username, by:ME.username,
+    note:'Trade ID: '+id+' reported by '+ME.username
+  }).catch(()=>{});
+  showToast('Trade reported to admin', 'ok');
 }
 
 // ── LEADERBOARD ───────────────────────────────────────────────────────────────
@@ -1990,6 +2068,236 @@ function initBannerDrag(currentPos){
   newWrap.addEventListener('touchend', endDrag);
 }
 
+
+// ── BRAINROT BASE VALUES ($/s income) for WFL calculator ─────────────────────
+const BR_VALUES = {
+  "Noobini Pizzanini":1,"Lirili Larila":3,"Tim Cheesee":5,"Frurifrura":7,
+  "Talpa Di Fero":9,"Svivina Borbardino":10,"Noobini Santanini":11,
+  "Raccooni Jandelini":12,"Pipi Kiwi":13,"Tartaragno":13,"Pipi Corni":14,
+  "Trippi Troppi":15,"Gangster Footera":30,"Bandito Bobritto":35,
+  "Boneca Ambalabu":40,"Cacto Hipopotamo":50,"Ta Ta Ta Ta Sahur":55,
+  "Tric Tric Baraboom":65,"Frogo Elfo":67,"Pipi Avocado":70,
+  "Cappuccino Assassino":75,"Brr Brr Patapim":100,"Trullimero Trulicina":125,
+  "Bambini Crostini":130,"Bananita Dolphinita":150,"Perochello Lemonchello":160,
+  "Brri Brri Bicus Dicus Bombicus":175,"Avocadini Guffo":225,
+  "Salamino Penguino":250,"Ti Ti Ti Ti Sahur":225,"Penguin Tree":270,
+  "Penguino Cocosino":300,"Mummio Pappito":300,
+  "Burbaloni Loliloli":200,"Chimpanzini Babanini":300,"Ballerina Appuccina":500,
+  "Chef Crabracadaba":600,"Lionel Cactuseli":650,"Glorbo Fruttodillo":750,
+  "Blueberrenni Octopusini":1000,"Strawberrlli Flamingelli":1100,
+  "Pandaccini Bananini":1200,"Cocosino Mamá":1200,"Sigma Boy":1300,
+  "Sigma Girl":1600,"Pipi Watermelon":1300,"Chocco Bunny":1400,
+  "Sealo Regalo":2000,"Puffaball":1500,"Quackula":1000,
+  "Frigo Camelo":1900,"Orangutini Ananassini":2000,"Rhino Toasterino":2100,
+  "Borbadiro Cocrodilo":2500,"Bombombini Gusini":5000,
+  "Cavallo Virtuoso":7500,"Gorillo Watermelondrillo":8000,"Avocadorila":7000,
+  "Tob Tobi Tobi":8500,"Ganganzelli Trulala":9000,"Cachorito Melonito":13000,
+  "Elefanto Frigo":14000,"Toiletto Focaccino":16000,"Te Te Te Te Sahur":9500,
+  "Tracoducotulu Delapeladustuz":12000,"Lerulerulerule":8700,
+  "Jingle Jingle Sahur":12200,"Tree Tree Tree Sahur":17000,"Carloo":13500,
+  "Spioniro Golubiro":3500,"Zibra Zubra Zibralini":6000,
+  "Tigrillini Watermelini":6500,"Carrotini Brainini":15000,
+  "Bananito Bandito":16500,
+  "Cocofanto Elefanto":17500,"Antonio":18500,"Girafa Cesletre":20000,
+  "Gattatino Nyanino":35000,"Chihuanini Taconini":45000,"Tralalero Tralala":50000,
+  "Metteo":50000,"Los Crocodilitos":55000,"Tigroline Frutonni":60000,
+  "Money Money Man":65000,"Expreso Signora":70000,"Unclito Samito":75000,
+  "Odin Din Din Dun":75000,"Tipi Topi Taco":75000,"Tralalita Tralala":100000,
+  "Tukanno Bananno":100000,"Extinct Ballerina":125000,"Vampira Cappuccina":125000,
+  "Trenozztruzzo Turbo 3000":150000,"Urubini Flamenguini":150000,
+  "Jacko Jack Jack":150000,"Trippi Troppi Troppa Trippa":175000,
+  "Capi Taco":155000,"Gattito Tacoto":160000,"Ballerino Lololo":200000,
+  "Ballerina Peppermintina":215000,"Piccione Macchina":225000,
+  "Tractoro Dinosaurio":230000,"Los Bombinitos":220000,
+  "Los Orcalitos":235000,"Orcalita Orcala":240000,"Aquanaut":245000,
+  "Mummy Ambalabu":250000,"Tartaruga Cisterna":250000,"Snailenzo":250000,
+  "Dug Dug Dug":255000,"Ginger Globo":257500,"Yeti Claus":257500,
+  "Tootini Shrimpini":260000,"Frio Ninja":265000,"Boba Panda":270000,
+  "Los Gatitos":285000,"Mastodontico Telepiedone":275000,
+  "Cappuccino Clownino":285000,"Brasilini Berimbini":285000,
+  "Skull Skull Skull":290000,"Belula Beluga":290000,"Cocoa Assassino":291000,
+  "Tentacolo Tecnico":292500,"Ginger Cisterna":293500,
+  "Pandanini Frostini":294000,"Dolphini Jetskini":294500,"Pop Pop Sahur":295000,
+  "La Vacca Saturno Saturnita":300000,"Bisonte Giuppitere":300000,
+  "Blackhole Goat":400000,"Sammyni Spyderini":325000,
+  "Tortuginni Dragonfrutini":350000,"Dul Dul Dul":375000,
+  "Los Tortus":500000,"Zombie Tralala":500000,"Fragola La La La":450000,
+  "Extinct Tralalero":450000,"Reindeer Tralala":600000,
+  "Las Vaquitas Saturnitas":750000,"Pumpkini Spyderini":650000,
+  "Frankentteo":700000,"Santteo":800000,"Trickolino":900000,
+  "Graipuss Medussi":1000000,"Perrito Burrito":1000000,
+  "Los Cucarachas":1200000,"Tung Tung Tung Sahur":1500000,
+  "Telemorte":2000000,"Pot Hotspot":2500000,
+  "Pirolitoita Bicicleteira":2500000,"Horegini Boom":2700000,
+  "Quesadilla Crocodila":3000000,"Chicleteira Bicicleteira":3500000,
+  "Quesadillo Vampiro":3500000,"Burrito Bandito":4000000,
+  "Chicleteirina Bicicleteirina":4000000,"Los Quesadillas":4500000,
+  "Los Burritos":8500000,"Mariachi Corazoni":12500000,"Swag Soda":13000000,
+  "Chimnino":14000000,"Nuclearo Dinossauro":15000000,
+  "Fishino Clownino":15500000,"Tacorita Bicicleta":16500000,
+  "Las Sis":17500000,"Celularcini Visiosini":22500000,
+  "Money Money Puggy":21000000,"Tralaledon":27500000,
+  "Chipso And Queso":25000000,"La Grande Combinasion":10000000,
+  "Mariachi Corazoni":12500000,"Dragon Cannelloni":100000000,
+  "Skibidi Toilet":350000000,"Meowl":400000000,"Strawberry Elephant":500000000,
+};
+
+function getBrainrotValue(name){
+  return BR_VALUES[name] || 0;
+}
+
+function formatVal(v){
+  if(v===0) return '$0/s';
+  if(v>=1000000000) return '$'+(v/1000000000).toFixed(1)+'B/s';
+  if(v>=1000000) return '$'+(v/1000000).toFixed(1)+'M/s';
+  if(v>=1000) return '$'+(v/1000).toFixed(1)+'K/s';
+  return '$'+v+'/s';
+}
+
+// ── WFL CALCULATOR ────────────────────────────────────────────────────────────
+let calcOfferItems = []; // {name, mut}
+let calcReceiveItems = [];
+let calcPickerSide = 'offer';
+let calcSelectedMut = 'none';
+
+const MUT_MULTS = {
+  none:1, gold:1.25, diamond:1.5, bloodrot:2, celestial:4,
+  candy:4, bubblegum:4, cursed:1, lava:6, glitch:6,
+  galaxy:7, yinyang:7.5, strawberryop:8, radioactive:8.5,
+  divine:9, rainbow:9
+};
+
+function getItemValue(item){
+  const base = getBrainrotValue(item.name);
+  const mult = MUT_MULTS[item.mut||'none'] || 1;
+  return base * mult;
+}
+
+function calcTotal(items){ return items.reduce((s,i)=>s+getItemValue(i),0); }
+
+function updateCalc(){
+  const offerTotal = calcTotal(calcOfferItems);
+  const receiveTotal = calcTotal(calcReceiveItems);
+
+  document.getElementById('calc-offer-total').textContent = formatVal(offerTotal);
+  document.getElementById('calc-receive-total').textContent = formatVal(receiveTotal);
+
+  renderCalcList('calc-offer-list', calcOfferItems, 'offer');
+  renderCalcList('calc-receive-list', calcReceiveItems, 'receive');
+
+  const verdict = document.getElementById('calc-verdict');
+  const vlabel = document.getElementById('calc-verdict-label');
+  const vsub = document.getElementById('calc-verdict-sub');
+  const vpct = document.getElementById('calc-verdict-pct');
+
+  if(!calcOfferItems.length && !calcReceiveItems.length){
+    verdict.style.display='none'; return;
+  }
+  verdict.style.display='block';
+
+  if(offerTotal===0 && receiveTotal===0){
+    vlabel.textContent='⚖️ FAIR';
+    vlabel.style.color='#fff';
+    vsub.textContent='Both sides have no known value';
+    vpct.textContent='';
+    verdict.style.borderColor='var(--border2)';
+    return;
+  }
+
+  const diff = receiveTotal - offerTotal;
+  const pct = offerTotal > 0 ? Math.round((diff/offerTotal)*100) : 0;
+
+  if(pct >= 10){
+    vlabel.textContent='✅ WIN';
+    vlabel.style.color='#4ade80';
+    vsub.textContent='You gain value in this trade';
+    verdict.style.borderColor='#4ade8044';
+    verdict.style.background='#0a1a0a';
+  } else if(pct <= -10){
+    vlabel.textContent='❌ LOSS';
+    vlabel.style.color='#ff5555';
+    vsub.textContent='You lose value in this trade';
+    verdict.style.borderColor='#ff555544';
+    verdict.style.background='#1a0a0a';
+  } else {
+    vlabel.textContent='⚖️ FAIR';
+    vlabel.style.color='#fff';
+    vsub.textContent='This is a roughly equal trade';
+    verdict.style.borderColor='var(--border2)';
+    verdict.style.background='var(--surface)';
+  }
+  const abs = Math.abs(pct);
+  vpct.textContent = pct > 0 ? `+${abs}% in your favour` : pct < 0 ? `${pct}% against you` : 'Exactly equal';
+  vpct.style.color = pct > 0 ? '#4ade80' : pct < 0 ? '#ff5555' : 'var(--text3)';
+}
+
+function renderCalcList(elId, items, side){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  if(!items.length){ el.innerHTML='<div style="color:var(--text3);font-size:.72rem;padding:4px 0;">Nothing added yet</div>'; return; }
+  el.innerHTML='';
+  items.forEach((item,i)=>{
+    const val = getItemValue(item);
+    const mut = MUTATIONS.find(m=>m.id===item.mut)||null;
+    const d=document.createElement('div');
+    d.className='calc-item';
+    d.innerHTML=`
+      <img src="${brImg(item.name)}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;background:var(--surface2);" onerror="this.style.display='none'">
+      <div class="calc-item-name">${esc(item.name)}${mut&&mut.id!=='none'?`<span style="font-size:.6rem;color:${mut.color};margin-left:4px;">● ${mut.name}</span>`:''}
+      </div>
+      <div class="calc-item-val">${formatVal(val)}</div>
+      <button class="calc-item-del" onclick="removeCalcItem('${side}',${i})">✕</button>
+    `;
+    el.appendChild(d);
+  });
+}
+
+function removeCalcItem(side, idx){
+  if(side==='offer') calcOfferItems.splice(idx,1);
+  else calcReceiveItems.splice(idx,1);
+  updateCalc();
+}
+
+function resetCalc(){
+  calcOfferItems=[]; calcReceiveItems=[];
+  updateCalc();
+}
+
+function openCalcPicker(side){
+  calcPickerSide=side;
+  calcSelectedMut='none';
+  document.getElementById('calc-search').value='';
+  buildCalcPicker('');
+  document.getElementById('calc-modal').classList.add('open');
+}
+
+function buildCalcPicker(filter){
+  const el=document.getElementById('calc-picker'); if(!el) return;
+  el.innerHTML='';
+  BR.filter(n=>n.toLowerCase().includes(filter.toLowerCase())).forEach(name=>{
+    const d=document.createElement('div');
+    d.className='cpi';
+    const imgSlug=brImg(name);
+    d.innerHTML=`<img src="${imgSlug}" style="width:30px;height:30px;border-radius:5px;object-fit:cover;margin:0 auto 2px;display:block;background:var(--surface2);" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="cpav" style="display:none;">${gi(name)}</div>${name}`;
+    d.onclick=()=>{
+      // Ask for mutation via quick prompt
+      const mutName = MUTATIONS.map(m=>m.name).join(', ');
+      // Just add with none mutation — show mutation selector
+      addCalcItem(name);
+    };
+    el.appendChild(d);
+  });
+}
+
+function addCalcItem(name){
+  // Show quick mutation picker inline
+  const item={name, mut:'none'};
+  if(calcPickerSide==='offer') calcOfferItems.push(item);
+  else calcReceiveItems.push(item);
+  cm('calc-modal');
+  updateCalc();
+  showToast(name+' added to calculator', 'ok');
+}
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
 function showToast(msg,type=false){
